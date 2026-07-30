@@ -1,0 +1,21 @@
+# Large binary files (course slides, old exams in PDF/DOC format)
+课件/
+课件2/
+ppt/
+往届期末试题/
+复习资料/
+
+# Textbook PDF
+经济管理概论第二版.pdf
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Server session (no sensitive data but not needed)
+server.ps1

@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经济管理期末刷题系统</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<script>
+tailwind.config = { theme: { extend: { colors: {
+  primary: '#4F46E5','primary-light':'#6366F1','primary-dark':'#3730A3',surface:'#F8FAFC',card:'#FFFFFF'
+}}}}
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+body{font-family:'Inter',system-ui,-apple-system,sans-serif}
+.sidebar-item{transition:all .2s ease}
+.sidebar-item:hover{background:rgba(79,70,229,.08)}
+.sidebar-item.active{background:rgba(79,70,229,.12);color:#4F46E5;font-weight:600}
+.option-btn{transition:all .15s ease}
+.option-btn:hover{border-color:#6366F1;background:rgba(99,102,241,.05)}
+.option-btn.selected{border-color:#4F46E5;background:rgba(79,70,229,.1);box-shadow:0 0 0 1px rgba(79,70,229,.2)}
+.option-btn.correct{border-color:#10B981;background:rgba(16,185,129,.1)}
+.option-btn.wrong{border-color:#EF4444;background:rgba(239,68,68,.1)}
+.btn-primary{transition:all .2s ease}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;font-size:.7rem;font-weight:500}
+.scrollbar-thin::-webkit-scrollbar{width:4px}
+.scrollbar-thin::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px}
+.q-row{transition:all .15s ease}
+.q-row:hover{background:rgba(79,70,229,.04)}
+.q-row.current{background:rgba(79,70,229,.08);border-left:3px solid #4F46E5}
+.stat-card{transition:all .2s ease}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.q-cell{transition:all .15s ease;cursor:pointer}
+.q-cell:hover{transform:scale(1.15);z-index:1}
+.q-cell.current{outline:2px solid #4F46E5;outline-offset:1px}
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
+
+<!-- Left Sidebar -->
+<aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+  <div class="p-5 border-b border-gray-100">
+    <h1 class="text-lg font-bold text-primary flex items-center gap-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.257 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      经管刷题系统
+    </h1>
+    <p class="text-xs text-gray-400 mt-1">北航经济管理期末复习</p>
+  </div>
+  <nav class="flex-1 overflow-y-auto scrollbar-thin p-3 space-y-1">
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-2">导航</div>
+    <div class="sidebar-item active rounded-lg px-3 py-2.5 cursor-pointer flex items-center gap-2 text-sm text-gray-600" onclick="showPage('dashboard');setActiveSidebar(this)">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+      首页仪表盘
+    </div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-2 mt-3">题目来源</div>
+    <div id="sidebar-exams" class="space-y-0.5"></div>
+    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-2 mt-3">个人中心</div>
+    <div class="sidebar-item rounded-lg px-3 py-2.5 cursor-pointer flex items-center gap-2 text-sm text-gray-600" onclick="currentMode='fav';applyFilter();showPage('card');setActiveSidebar(this)">
+      <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+      收藏夹 <span id="fav-count" class="tag bg-yellow-100 text-yellow-700">0</span>
+    </div>
+    <div class="sidebar-item rounded-lg px-3 py-2.5 cursor-pointer flex items-center gap-2 text-sm text-gray-600" onclick="currentMode='wrong';applyFilter();showPage('card');setActiveSidebar(this)">
+      <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+      错题库 <span id="wrong-count" class="tag bg-red-100 text-red-700">0</span>
+    </div>
+  </nav>
+  <div class="p-4 border-t border-gray-100 space-y-2">
+    <div class="flex items-center gap-2 text-xs text-gray-400">
+      <span>考试日期</span>
+      <input id="exam-date" type="date" class="text-xs border border-gray-200 rounded px-1.5 py-0.5 w-24" onchange="saveExamDate();updateDashboard()">
+    </div>
+    <div id="countdown" class="text-sm font-semibold text-primary"></div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 flex overflow-hidden">
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Filter Bar -->
+    <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+      <select id="filter-year" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="applyFilter()"><option value="">全部年份</option></select>
+      <select id="filter-type" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="applyFilter()">
+        <option value="">全部题型</option><option value="填空">填空</option><option value="单选">单选</option><option value="多选">多选</option><option value="判断">判断</option><option value="计算">计算</option>
+      </select>
+      <div class="flex-1 relative">
+        <input id="search-input" type="text" placeholder="搜索题目关键字..." class="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 pl-9 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" oninput="applyFilter()">
+        <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+      <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+        <button id="view-card-btn" class="text-xs px-2.5 py-1 rounded-md bg-white shadow-sm text-primary font-medium" onclick="showPage('card')">答题</button>
+        <button id="view-list-btn" class="text-xs px-2.5 py-1 rounded-md text-gray-500" onclick="showPage('list')">列表</button>
+      </div>
+      <div class="text-sm text-gray-400"><span id="filtered-count" class="font-semibold text-gray-600">0</span> 题</div>
+      <button onclick="resetFilter()" class="text-xs text-gray-400 hover:text-primary px-2 py-1">重置</button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- ===== Dashboard Page ===== -->
+      <div id="page-dashboard" class="max-w-4xl mx-auto p-6 fade-in">
+        <h2 class="text-xl font-bold text-gray-800 mb-6">📊 学习仪表盘</h2>
+        <div class="grid grid-cols-4 gap-4 mb-6" id="stat-cards"></div>
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-semibold text-gray-600 mb-3">各试卷进度</h3>
+            <div id="exam-progress" class="space-y-2"></div>
+          </div>
+          <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+            <h3 class="text-sm font-semibold text-gray-600 mb-3">各题型进度</h3>
+            <div id="type-progress" class="space-y-2"></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+          <h3 class="text-sm font-semibold text-gray-600 mb-3">快速开始</h3>
+          <div class="flex gap-3" id="quick-actions"></div>
+        </div>
+      </div>
+
+      <!-- ===== Card View (Practice Mode) ===== -->
+      <div id="page-card" class="hidden max-w-3xl mx-auto p-6 fade-in">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <span id="q-type-badge" class="tag bg-indigo-100 text-indigo-700"></span>
+              <span id="q-source-badge" class="tag bg-gray-100 text-gray-600"></span>
+            </div>
+            <span id="q-index" class="text-sm text-gray-400"></span>
+          </div>
+          <div id="q-text" class="text-base leading-relaxed mb-4 whitespace-pre-line"></div>
+          <div id="q-image" class="mb-4 hidden"><img id="q-img" class="max-w-full rounded-lg border border-gray-100" alt="题目图表"></div>
+          <div id="q-options" class="space-y-2 mb-4 hidden"></div>
+          <div id="q-fill" class="mb-4 hidden">
+            <input id="fill-input" type="text" placeholder="输入你的答案..." class="w-full text-sm border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+          </div>
+          <div id="q-calc" class="mb-4 hidden">
+            <button onclick="showCalcAnswer()" class="btn-primary bg-primary text-white text-sm px-4 py-2 rounded-lg">显示答案</button>
+          </div>
+          <div id="q-submit" class="flex items-center gap-3 mb-4 hidden">
+            <button onclick="submitAnswer()" class="btn-primary bg-primary text-white text-sm px-5 py-2 rounded-lg">提交答案</button>
+            <button onclick="showAnswerDirectly()" class="text-sm text-gray-400 hover:text-primary px-3 py-2">直接看答案</button>
+          </div>
+          <!-- Last Record (for review mode - shown in exam mode for answered questions) -->
+          <div id="q-last-record" class="hidden fade-in">
+            <div class="border-t border-gray-100 pt-3 mt-2">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">上次作答</span>
+                <span id="last-result-badge" class="text-xs font-semibold px-2 py-0.5 rounded"></span>
+              </div>
+              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">你的选择：</span><span id="last-user-answer" class="font-medium"></span></div>
+              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">正确答案：</span><span id="last-correct-answer" class="text-primary font-medium"></span></div>
+              <div id="last-explanation-area" class="text-sm text-gray-500 mt-2 hidden">
+                <span class="font-medium text-gray-700">解析：</span><span id="last-explanation-text" class="whitespace-pre-line"></span>
+              </div>
+            </div>
+          </div>
+          <!-- Result (shown after answering in current session) -->
+          <div id="q-result" class="hidden fade-in">
+            <div class="border-t border-gray-100 pt-4 mt-2">
+              <div class="flex items-center gap-2 mb-2">
+                <span id="result-icon" class="text-lg"></span>
+                <span id="result-text" class="text-sm font-semibold"></span>
+              </div>
+              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">你的选择：</span><span id="result-user-answer" class="font-medium"></span></div>
+              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">正确答案：</span><span id="answer-text" class="text-primary font-medium"></span></div>
+              <div id="explanation-area" class="text-sm text-gray-500 mt-2 hidden">
+                <span class="font-medium text-gray-700">解析：</span><span id="explanation-text" class="whitespace-pre-line"></span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3 mt-4 pt-3 border-t border-gray-50">
+              <button id="redo-btn" onclick="redoQuestion()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary hover:bg-indigo-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                重做此题
+              </button>
+              <button id="fav-btn" onclick="toggleFavorite()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
+                <svg id="fav-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.599 5.777a1 1 0 00.95.69h5.682c.969 0 1.371 1.24.588 1.81l-4.6 3.462a1 1 0 00-.363 1.118l1.723 5.516c.3.921-.755 1.688-1.54 1.118l-4.788-3.48a1 1 0 00-1.175 0l-4.788 3.48c-.784.57-1.838-.197-1.539-1.118L6.17 15.08a1 1 0 00-.363-1.118L1.2 10.607c-.783-.57-.38-1.81.588-1.81h5.682a1 1 0 00.95-.69l1.6-5.777z"/></svg>
+                <span id="fav-text">收藏</span>
+              </button>
+              <button id="wrong-btn" onclick="toggleWrongBook()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 transition-colors">
+                <svg id="wrong-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span id="wrong-text">加入错题</span>
+              </button>
+            </div>
+          </div>
+          <!-- Action buttons for answered questions in exam mode (review) -->
+          <div id="q-review-actions" class="hidden mt-4 pt-3 border-t border-gray-50 flex items-center gap-3">
+            <button onclick="redoQuestion()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary hover:bg-indigo-50 transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              重做此题
+            </button>
+            <button id="fav-btn-2" onclick="toggleFavorite()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
+              <svg id="fav-icon-2" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.599 5.777a1 1 0 00.95.69h5.682c.969 0 1.371 1.24.588 1.81l-4.6 3.462a1 1 0 00-.363 1.118l1.723 5.516c.3.921-.755 1.688-1.54 1.118l-4.788-3.48a1 1 0 00-1.175 0l-4.788 3.48c-.784.57-1.838-.197-1.539-1.118L6.17 15.08a1 1 0 00-.363-1.118L1.2 10.607c-.783-.57-.38-1.81.588-1.81h5.682a1 1 0 00.95-.69l1.6-5.777z"/></svg>
+              <span id="fav-text-2">收藏</span>
+            </button>
+            <button id="wrong-btn-2" onclick="toggleWrongBook()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 transition-colors">
+              <svg id="wrong-icon-2" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span id="wrong-text-2">加入错题</span>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center justify-between mt-4">
+          <button onclick="prevQ()" id="prev-btn" class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary px-3 py-2 rounded-lg hover:bg-gray-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>上一题</button>
+          <div class="text-sm text-gray-400"><span id="current-idx" class="font-semibold text-gray-600">1</span> / <span id="total-idx">0</span></div>
+          <button onclick="nextQ()" id="next-btn" class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary px-3 py-2 rounded-lg hover:bg-gray-50">下一题<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+
+      <!-- ===== List View ===== -->
+      <div id="page-list" class="hidden max-w-4xl mx-auto p-6 fade-in">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center text-xs font-semibold text-gray-500">
+            <span class="w-8">#</span>
+            <span class="w-16">题型</span>
+            <span class="flex-1">题目内容</span>
+            <span class="w-10 text-center">状态</span>
+            <span class="w-20 text-center">操作</span>
+          </div>
+          <div id="question-list-body" class="divide-y divide-gray-50 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin"></div>
+        </div>
+      </div>
+
+      <!-- Empty -->
+      <div id="empty-state" class="hidden max-w-3xl mx-auto text-center py-20">
+        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-gray-400 text-sm">暂无匹配的题目</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Sidebar: Question Grid -->
+  <aside id="right-sidebar" class="w-44 bg-white border-l border-gray-200 flex-shrink-0 hidden flex-col">
+    <div class="px-3 py-3 border-b border-gray-100">
+      <h3 class="text-xs font-semibold text-gray-600">题目导航</h3>
+      <div class="flex items-center gap-2 mt-2 text-[10px] text-gray-400">
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-green-500 inline-block"></span>对</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-500 inline-block"></span>错</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-200 inline-block"></span>未做</span>
+      </div>
+    </div>
+    <div id="q-grid" class="flex-1 overflow-y-auto scrollbar-thin p-2"><div id="q-grid-inner" class="grid grid-cols-4 gap-1"></div></div>
+  </aside>
+</main>
+
+<script>
+window.EXAM_DATA=[];window.ALL_QUESTIONS=[];
+</script>
+<script src="data-2019c.js"></script>
+<script src="data-2019a.js"></script>
+<script src="data-2021a.js"></script>
+<script src="data-2022a.js"></script>
+<script src="data-2013a.js"></script>
+<script>
+// ============ State ============
+let allQ=window.ALL_QUESTIONS, examData=window.EXAM_DATA;
+let filteredQ=[], currentIdx=0, currentMode='exam';
+function loadState(){return JSON.parse(localStorage.getItem('jg_quiz_v2')||'{"favorites":[],"wrongBook":[],"answered":{},"correctCount":0,"totalCount":0,"examDate":"2027-01-15"}')}
+function saveState(s){localStorage.setItem('jg_quiz_v2',JSON.stringify(s))}
+let S=loadState();
+
+// ============ Pages ============
+function showPage(name){
+  ['dashboard','card','list'].forEach(p=>{
+    const el=document.getElementById('page-'+p);
+    if(el)el.classList.toggle('hidden',p!==name);
+  });
+  document.getElementById('empty-state').classList.add('hidden');
+  document.getElementById('view-card-btn').classList.toggle('bg-white',name==='card');
+  document.getElementById('view-card-btn').classList.toggle('shadow-sm',name==='card');
+  document.getElementById('view-card-btn').classList.toggle('text-primary',name==='card');
+  document.getElementById('view-card-btn').classList.toggle('text-gray-500',name!=='card');
+  document.getElementById('view-list-btn').classList.toggle('bg-white',name==='list');
+  document.getElementById('view-list-btn').classList.toggle('shadow-sm',name==='list');
+  document.getElementById('view-list-btn').classList.toggle('text-primary',name==='list');
+  document.getElementById('view-list-btn').classList.toggle('text-gray-500',name!=='list');
+  // Right sidebar: show only in card mode
+  const rs=document.getElementById('right-sidebar');
+  rs.classList.toggle('hidden',name!=='card');
+  rs.classList.toggle('flex',name==='card');
+  if(name==='dashboard')updateDashboard();
+  if(name==='list')renderList();
+  if(name==='card')renderQuestion();
+}
+
+// ============ Init ============
+function init(){
+  document.getElementById('exam-date').value=S.examDate||'2027-01-15';
+  const sb=document.getElementById('sidebar-exams');
+  const allItem=document.createElement('div');
+  allItem.className='sidebar-item rounded-lg px-3 py-2.5 cursor-pointer flex items-center gap-2 text-sm';
+  allItem.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>全部试题';
+  allItem.dataset.examId='all';
+  allItem.onclick=()=>{currentMode='exam';document.getElementById('filter-year').value='';setActiveSidebar(allItem);applyFilter();showPage('card')};
+  sb.appendChild(allItem);
+  examData.forEach(e=>{
+    const it=document.createElement('div');
+    it.className='sidebar-item rounded-lg px-3 py-2.5 cursor-pointer flex items-center gap-2 text-sm pl-6';
+    const cnt=allQ.filter(q=>q.source===e.id).length;
+    it.innerHTML=`<span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>${e.name} <span class="tag bg-gray-100 text-gray-500">${cnt}</span>`;
+    it.dataset.examId=e.id;
+    it.onclick=()=>{currentMode='exam';document.getElementById('filter-year').value=e.id;setActiveSidebar(it);applyFilter();showPage('card')};
+    sb.appendChild(it);
+  });
+  const ysel=document.getElementById('filter-year');
+  examData.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.name;ysel.appendChild(o)});
+  updateBadges();updateDashboard();
+  showPage('dashboard');
+}
+function setActiveSidebar(el){document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));el.classList.add('active')}
+function saveExamDate(){S.examDate=document.getElementById('exam-date').value;saveState(S)}
+
+// ============ Dashboard ============
+function updateDashboard(){
+  const total=allQ.length, fav=S.favorites.length, wrong=S.wrongBook.length;
+  const answeredIds=Object.keys(S.answered);
+  const doneCount=answeredIds.length;
+  const correctCount=answeredIds.filter(id=>S.answered[id].isCorrect===true).length;
+  const acc=doneCount>0?Math.round(correctCount/doneCount*100)+'%':'--';
+  // Countdown
+  const examD=new Date(S.examDate);const today=new Date();today.setHours(0,0,0,0);
+  const diff=Math.max(0,Math.ceil((examD-today)/(1000*60*60*24)));
+  document.getElementById('countdown').textContent=diff>0?`距考试还有 ${diff} 天`:'考试日已到！';
+  // Stat cards
+  document.getElementById('stat-cards').innerHTML=[
+    {label:'总题量',value:total,icon:'📚',textClass:'text-indigo-600'},
+    {label:'已做题',value:doneCount,icon:'✍️',textClass:'text-blue-600'},
+    {label:'正确率',value:acc,icon:'🎯',textClass:'text-green-600'},
+    {label:'收藏/错题',value:`${fav}/${wrong}`,icon:'⭐',textClass:'text-amber-600'}
+  ].map(c=>`<div class="stat-card bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+    <div class="text-2xl mb-1">${c.icon}</div>
+    <div class="text-2xl font-bold ${c.textClass}">${c.value}</div>
+    <div class="text-xs text-gray-400 mt-1">${c.label}</div></div>`).join('');
+  // Exam progress - clickable to navigate to that exam's quiz
+  document.getElementById('exam-progress').innerHTML=examData.map(e=>{
+    const total=allQ.filter(q=>q.source===e.id).length;
+    const done=allQ.filter(q=>q.source===e.id&&S.answered[q.id]).length;
+    const pct=total>0?Math.round(done/total*100):0;
+    return `<div class="flex items-center gap-3 text-sm cursor-pointer hover:bg-indigo-50 rounded-lg px-2 py-1.5 transition-colors" onclick="startExam('${e.id}')"><span class="w-36 text-gray-600 truncate">${e.name}</span>
+      <div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-primary rounded-full h-2" style="width:${pct}%"></div></div>
+      <span class="text-gray-400 w-16 text-right">${done}/${total}</span></div>`;
+  }).join('');
+  // Type progress - FIXED
+  const types=['填空','单选','多选','判断','计算'];
+  document.getElementById('type-progress').innerHTML=types.map(t=>{
+    const total=allQ.filter(q=>q.type===t).length;
+    const done=allQ.filter(q=>q.type===t&&S.answered[q.id]).length;
+    const pct=total>0?Math.round(done/total*100):0;
+    return `<div class="flex items-center gap-3 text-sm cursor-pointer hover:bg-indigo-50 rounded-lg px-2 py-1.5 transition-colors" onclick="currentMode='exam';document.getElementById('filter-type').value='${t}';applyFilter();showPage('card')"><span class="w-12 text-gray-600">${t}</span>
+      <div class="flex-1 bg-gray-100 rounded-full h-2"><div class="bg-primary-light rounded-full h-2" style="width:${pct}%"></div></div>
+      <span class="text-gray-400 w-16 text-right">${done}/${total}</span></div>`;
+  }).join('');
+  // Quick actions
+  document.getElementById('quick-actions').innerHTML=[
+    {label:'开始刷题',action:"currentMode='exam';applyFilter();showPage('card')",btnClass:'bg-primary text-white hover:opacity-90'},
+    {label:'错题重练',action:"currentMode='wrong';applyFilter();showPage('card')",btnClass:'bg-red-50 text-red-700 hover:bg-red-100'},
+    {label:'收藏复习',action:"currentMode='fav';applyFilter();showPage('card')",btnClass:'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'},
+    {label:'清空进度',action:"resetProgress()",btnClass:'bg-gray-50 text-gray-700 hover:bg-gray-100'}
+  ].map(a=>`<button onclick="${a.action}" class="${a.btnClass} text-sm px-4 py-2 rounded-lg border border-gray-200 transition-colors">${a.label}</button>`).join('');
+}
+
+// ============ Filter ============
+function applyFilter(){
+  const year=document.getElementById('filter-year').value;
+  const type=document.getElementById('filter-type').value;
+  const kw=document.getElementById('search-input').value.trim().toLowerCase();
+  let qs=[];
+  if(currentMode==='fav')qs=allQ.filter(q=>S.favorites.includes(q.id));
+  else if(currentMode==='wrong')qs=allQ.filter(q=>S.wrongBook.includes(q.id));
+  else{qs=allQ;if(year)qs=qs.filter(q=>q.source===year)}
+  if(type)qs=qs.filter(q=>q.type===type);
+  if(kw)qs=qs.filter(q=>q.question.toLowerCase().includes(kw)||(q.answer&&q.answer.toLowerCase().includes(kw)));
+  filteredQ=qs;
+  // Feature 4: Auto-jump to first unanswered question
+  if(currentMode==='exam'&&year){
+    const firstUnanswered=qs.findIndex(q=>!S.answered[q.id]);
+    currentIdx=firstUnanswered>=0?firstUnanswered:0;
+  }else{
+    currentIdx=0;
+  }
+  document.getElementById('filtered-count').textContent=qs.length;
+  if(!document.getElementById('page-card').classList.contains('hidden'))renderQuestion();
+  if(!document.getElementById('page-list').classList.contains('hidden'))renderList();
+  renderQGrid();
+}
+function resetFilter(){
+  document.getElementById('filter-year').value='';
+  document.getElementById('filter-type').value='';
+  document.getElementById('search-input').value='';
+  currentMode='exam';
+  const first=document.querySelector('#sidebar-exams .sidebar-item');
+  if(first)setActiveSidebar(first);
+  applyFilter();
+}
+
+// ============ Right Sidebar: Question Grid ============
+function renderQGrid(){
+  const grid=document.getElementById('q-grid');
+  if(filteredQ.length===0){grid.innerHTML='<div class="text-center text-xs text-gray-400 py-4">暂无题目</div>';return}
+  let inner=document.getElementById('q-grid-inner');
+  if(!inner){
+    inner=document.createElement('div');
+    inner.id='q-grid-inner';
+    inner.className='grid grid-cols-4 gap-1';
+    grid.appendChild(inner);
+  }
+  inner.innerHTML=filteredQ.map((q,i)=>{
+    const r=S.answered[q.id];
+    let cls='bg-gray-200 text-gray-500'; // unanswered
+    if(r){
+      if(r.isCorrect===true)cls='bg-green-500 text-white';
+      else if(r.isCorrect===false)cls='bg-red-500 text-white';
+      else cls='bg-gray-400 text-white'; // viewed answer
+    }
+    const isCurrent=i===currentIdx;
+    return `<div class="q-cell ${cls} ${isCurrent?'current':''} w-8 h-8 rounded flex items-center justify-center text-[10px] font-semibold" onclick="jumpToQ(${i})" title="${q.type} #${i+1}">${i+1}</div>`;
+  }).join('');
+}
+
+// ============ List View ============
+function renderList(){
+  const body=document.getElementById('question-list-body');
+  if(filteredQ.length===0){body.innerHTML='<div class="text-center py-8 text-gray-400 text-sm">暂无题目</div>';return}
+  body.innerHTML=filteredQ.map((q,i)=>{
+    const r=S.answered[q.id];
+    const fav=S.favorites.includes(q.id);
+    const wrong=S.wrongBook.includes(q.id);
+    const isCurrent=i===currentIdx;
+    const trunc=q.question.substring(0,80)+(q.question.length>80?'...':'');
+    const typeColors={填空:'bg-blue-100 text-blue-700',单选:'bg-indigo-100 text-indigo-700',多选:'bg-purple-100 text-purple-700',判断:'bg-amber-100 text-amber-700',计算:'bg-green-100 text-green-700'};
+    const tc=typeColors[q.type]||'bg-gray-100 text-gray-700';
+    const statusIcons=(r?(r.isCorrect===true?'✅':r.isCorrect===false?'❌':'📖'):'')+(fav?'⭐':'');
+    return `<div class="q-row flex items-center px-5 py-2.5 cursor-pointer text-sm ${isCurrent?'current':''}" onclick="jumpToQ(${i})">
+      <span class="w-8 text-gray-400 text-xs">${i+1}</span>
+      <span class="w-16"><span class="tag ${tc}">${q.type}</span></span>
+      <span class="flex-1 text-gray-700 truncate">${trunc.replace(/</g,'&lt;')}</span>
+      <span class="w-10 text-center text-sm">${statusIcons}</span>
+      <span class="w-20 text-center"><button class="text-xs text-primary hover:underline" onclick="event.stopPropagation();jumpToQ(${i})">查看</button></span>
+    </div>`;
+  }).join('');
+}
+function jumpToQ(idx){currentIdx=idx;showPage('card')}
+
+// ============ Card View ============
+function renderQuestion(){
+  const area=document.getElementById('page-card');
+  const empty=document.getElementById('empty-state');
+  if(filteredQ.length===0){area.classList.add('hidden');empty.classList.remove('hidden');return}
+  area.classList.remove('hidden');empty.classList.add('hidden');
+  const q=filteredQ[currentIdx];
+  document.getElementById('q-type-badge').textContent=q.type;
+  document.getElementById('q-source-badge').textContent=examData.find(e=>e.id===q.source)?.name||q.source;
+  document.getElementById('q-index').textContent=`第 ${currentIdx+1} / ${filteredQ.length} 题`;
+  const qText=document.getElementById('q-text');
+  qText.textContent=q.question;
+  // Render KaTeX
+  try{renderMathInElement(qText,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false})}catch(e){}
+  // Image
+  const imgArea=document.getElementById('q-image');
+  if(q.image){imgArea.classList.remove('hidden');document.getElementById('q-img').src=q.image}
+  else{imgArea.classList.add('hidden')}
+  // Reset all interaction areas
+  ['q-options','q-fill','q-calc','q-submit','q-result','q-last-record','q-review-actions'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('q-options').innerHTML='';
+  document.getElementById('fill-input').value='';
+
+  const prev=S.answered[q.id];
+  const isReviewMode=(currentMode==='fav'||currentMode==='wrong'); // Feature 2: fav/wrong = hide previous record
+
+  if(prev&&!isReviewMode){
+    // Feature 1: Show last answer record in exam mode
+    // Show options with correct/wrong highlighting
+    if(q.type==='单选'||q.type==='多选'||q.type==='判断'){
+      renderOptionsWithResult(q,prev);
+    }else if(q.type==='填空'){
+      document.getElementById('q-fill').classList.remove('hidden');
+    }else if(q.type==='计算'){
+      // calculation questions just show record
+    }
+    // Show last record panel
+    showLastRecord(q,prev);
+    // Show review actions (redo, fav, wrong)
+    document.getElementById('q-review-actions').classList.remove('hidden');
+    updateFavWrongBtns2(q);
+  }else{
+    // Fresh question or review mode (fav/wrong) - show as unanswered
+    if(q.type==='单选'||q.type==='多选'||q.type==='判断')renderOptions(q);
+    else if(q.type==='填空'){document.getElementById('q-fill').classList.remove('hidden');document.getElementById('q-submit').classList.remove('hidden')}
+    else if(q.type==='计算')document.getElementById('q-calc').classList.remove('hidden');
+  }
+  // Nav
+  document.getElementById('current-idx').textContent=currentIdx+1;
+  document.getElementById('total-idx').textContent=filteredQ.length;
+  document.getElementById('prev-btn').disabled=currentIdx===0;
+  document.getElementById('next-btn').disabled=currentIdx===filteredQ.length-1;
+  document.getElementById('prev-btn').classList.toggle('opacity-30',currentIdx===0);
+  document.getElementById('next-btn').classList.toggle('opacity-30',currentIdx===filteredQ.length-1);
+  // Right sidebar grid
+  renderQGrid();
+}
+
+// Render options for a fresh question (no result shown)
+function renderOptions(q){
+  const c=document.getElementById('q-options');c.classList.remove('hidden');
+  document.getElementById('q-submit').classList.remove('hidden');
+  let opts=q.options||[];
+  if(q.type==='判断')opts=['对','错'];
+  const isM=q.type==='多选';
+  opts.forEach(opt=>{
+    let val=q.type!=='判断'?opt.charAt(0):opt;
+    const d=document.createElement('div');
+    d.className='option-btn border border-gray-200 rounded-lg px-4 py-3 cursor-pointer text-sm flex items-center gap-3';
+    d.dataset.value=val;
+    const rc=q.type==='判断'?'rounded-full':(isM?'rounded':'rounded-full');
+    d.innerHTML=`<span class="opt-indicator w-5 h-5 flex-shrink-0 ${rc} border-2 border-gray-300 flex items-center justify-center text-xs font-bold text-white transition-all"></span><span class="opt-label flex-1">${opt}</span>`;
+    d.onclick=()=>selectOpt(d,isM);
+    c.appendChild(d);
+  });
+}
+
+// Render options with result highlighting (for answered questions in exam mode)
+function renderOptionsWithResult(q,r){
+  const c=document.getElementById('q-options');c.classList.remove('hidden');
+  let opts=q.options||[];
+  if(q.type==='判断')opts=['对','错'];
+  const ansC=q.type==='判断'?[q.answer]:q.answer.split('');
+  opts.forEach(opt=>{
+    let val=q.type!=='判断'?opt.charAt(0):opt;
+    const d=document.createElement('div');
+    let cls='option-btn border rounded-lg px-4 py-3 text-sm flex items-center gap-3 cursor-default';
+    if(ansC.includes(val))cls+=' correct border-green-300';
+    else if(r.userAnswer&&r.userAnswer.includes(val)&&!ansC.includes(val))cls+=' wrong border-red-300';
+    else cls+=' border-gray-200';
+    d.className=cls;
+    d.dataset.value=val;
+    const rc=q.type==='判断'?'rounded-full':'rounded-full';
+    let indCls='opt-indicator w-5 h-5 flex-shrink-0 '+rc+' border-2 flex items-center justify-center text-xs font-bold text-white transition-all';
+    if(ansC.includes(val))indCls+=' bg-green-500 border-green-500';
+    else if(r.userAnswer&&r.userAnswer.includes(val))indCls+=' bg-red-500 border-red-500';
+    else indCls+=' border-gray-300';
+    d.innerHTML=`<span class="${indCls}">${ansC.includes(val)?'✓':(r.userAnswer&&r.userAnswer.includes(val)?'✗':'')}</span><span class="opt-label flex-1">${opt}</span>`;
+    c.appendChild(d);
+  });
+}
+
+function selectOpt(btn,isM){
+  if(isM){
+    btn.classList.toggle('selected');
+    const ind=btn.querySelector('.opt-indicator');
+    if(btn.classList.contains('selected')){ind.classList.add('bg-primary','border-primary');ind.textContent='✓'}
+    else{ind.classList.remove('bg-primary','border-primary');ind.textContent=''}
+  }else{
+    document.querySelectorAll('.option-btn').forEach(b=>{b.classList.remove('selected');const i=b.querySelector('.opt-indicator');i.classList.remove('bg-primary','border-primary');i.textContent=''});
+    btn.classList.add('selected');
+    const ind=btn.querySelector('.opt-indicator');ind.classList.add('bg-primary','border-primary');ind.textContent='●';
+  }
+}
+
+// Show last answer record panel
+function showLastRecord(q,r){
+  const panel=document.getElementById('q-last-record');
+  panel.classList.remove('hidden');
+  const badge=document.getElementById('last-result-badge');
+  if(r.isCorrect===true){badge.textContent='✓ 正确';badge.className='text-xs font-semibold px-2 py-0.5 rounded bg-green-100 text-green-700'}
+  else if(r.isCorrect===false){badge.textContent='✗ 错误';badge.className='text-xs font-semibold px-2 py-0.5 rounded bg-red-100 text-red-700'}
+  else{badge.textContent='查看答案';badge.className='text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600'}
+  const uaEl=document.getElementById('last-user-answer');
+  if(q.type==='判断'||q.type==='单选')uaEl.textContent=r.userAnswer||'--';
+  else if(q.type==='多选')uaEl.textContent=r.userAnswer||'--';
+  else if(q.type==='填空')uaEl.textContent=r.userAnswer||'--';
+  else uaEl.textContent=r.userAnswer||'--';
+  const ansEl=document.getElementById('last-correct-answer');
+  ansEl.textContent=q.answer||'暂无答案';
+  try{renderMathInElement(ansEl,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false})}catch(e){}
+  if(q.explanation){document.getElementById('last-explanation-area').classList.remove('hidden');document.getElementById('last-explanation-text').textContent=q.explanation}
+  else document.getElementById('last-explanation-area').classList.add('hidden');
+}
+
+// ============ Submit / Answer ============
+function submitAnswer(){
+  const q=filteredQ[currentIdx];
+  const isReviewMode=(currentMode==='fav'||currentMode==='wrong');
+  if(S.answered[q.id]&&!isReviewMode)return;
+  let ua='';
+  if(q.type==='单选'||q.type==='多选'||q.type==='判断'){
+    const sel=document.querySelectorAll('.option-btn.selected');
+    if(!sel.length){showToast('请先选择答案');return}
+    ua=Array.from(sel).map(b=>b.dataset.value).join('');
+  }else if(q.type==='填空'){
+    ua=document.getElementById('fill-input').value.trim();
+    if(!ua){showToast('请先输入答案');return}
+  }
+  let ok=false;
+  if(q.type==='判断')ok=ua===q.answer;
+  else if(q.type==='单选')ok=ua===q.answer;
+  else if(q.type==='多选'){const su=ua.split('').sort().join(''),sa=q.answer.split('').sort().join('');ok=su===sa}
+  else if(q.type==='填空'){const ca=q.answer.split(/[;；,，、\/]/).map(a=>a.trim());ok=ca.some(a=>a&&(ua.includes(a)||a.includes(ua)))}
+  const r={userAnswer:ua,isCorrect:ok};
+  S.answered[q.id]=r;S.totalCount++;if(ok)S.correctCount++;
+  if(!ok&&!S.wrongBook.includes(q.id))S.wrongBook.push(q.id);
+  else if(ok&&S.wrongBook.includes(q.id))S.wrongBook=S.wrongBook.filter(id=>id!==q.id);
+  saveState(S);showResult(q,r);updateBadges();renderQGrid();
+}
+function showAnswerDirectly(){
+  const q=filteredQ[currentIdx];
+  const isReviewMode=(currentMode==='fav'||currentMode==='wrong');
+  if(S.answered[q.id]&&!isReviewMode)return;
+  const r={userAnswer:'(查看答案)',isCorrect:null};
+  S.answered[q.id]=r;S.totalCount++;saveState(S);showResult(q,r);updateBadges();renderQGrid();
+}
+function showCalcAnswer(){
+  const q=filteredQ[currentIdx];
+  if(S.answered[q.id]){showResult(q,S.answered[q.id]);return}
+  const r={userAnswer:'(计算题查看答案)',isCorrect:null};
+  S.answered[q.id]=r;S.totalCount++;saveState(S);showResult(q,r);updateBadges();renderQGrid();
+}
+function showResult(q,r){
+  document.getElementById('q-result').classList.remove('hidden');
+  if(q.type==='单选'||q.type==='多选'||q.type==='判断'){
+    const ansC=q.type==='判断'?[q.answer]:q.answer.split('');
+    document.querySelectorAll('.option-btn').forEach(b=>{
+      const v=b.dataset.value;
+      if(ansC.includes(v))b.classList.add('correct');
+      else if(r.userAnswer&&r.userAnswer.includes(v)&&!ansC.includes(v))b.classList.add('wrong');
+    });
+  }
+  const icon=document.getElementById('result-icon'),text=document.getElementById('result-text');
+  if(r.isCorrect===true){icon.textContent='✅';text.textContent='回答正确！';text.className='text-sm font-semibold text-green-600'}
+  else if(r.isCorrect===false){icon.textContent='❌';text.textContent='回答错误';text.className='text-sm font-semibold text-red-600'}
+  else{icon.textContent='📖';text.textContent='查看答案';text.className='text-sm font-semibold text-gray-500'}
+  // Show user's answer in result
+  document.getElementById('result-user-answer').textContent=r.userAnswer||'--';
+  const ansEl=document.getElementById('answer-text');
+  ansEl.textContent=q.answer||'暂无答案';
+  try{renderMathInElement(ansEl,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false})}catch(e){}
+  if(q.explanation){document.getElementById('explanation-area').classList.remove('hidden');document.getElementById('explanation-text').textContent=q.explanation}
+  else document.getElementById('explanation-area').classList.add('hidden');
+  document.getElementById('q-submit').classList.add('hidden');
+  if(q.type==='计算')document.getElementById('q-calc').classList.add('hidden');
+  if(q.type==='填空')document.getElementById('q-fill').classList.add('hidden');
+  updateFavWrongBtns(q);
+}
+
+// ============ Redo ============
+function redoQuestion(){
+  const q=filteredQ[currentIdx];
+  const prev=S.answered[q.id];
+  if(prev){
+    S.totalCount=Math.max(0,S.totalCount-1);
+    if(prev.isCorrect===true)S.correctCount=Math.max(0,S.correctCount-1);
+  }
+  delete S.answered[q.id];
+  saveState(S);
+  renderQuestion();
+  showToast('题目已重置，可以重新作答');
+  updateBadges();
+}
+
+// ============ Favorites & Wrong Book ============
+function toggleFavorite(){
+  const q=filteredQ[currentIdx];
+  const idx=S.favorites.indexOf(q.id);
+  if(idx>=0)S.favorites.splice(idx,1);else S.favorites.push(q.id);
+  saveState(S);
+  updateFavWrongBtns(q);
+  updateFavWrongBtns2(q);
+  updateBadges();
+}
+function toggleWrongBook(){
+  const q=filteredQ[currentIdx];
+  const idx=S.wrongBook.indexOf(q.id);
+  if(idx>=0)S.wrongBook.splice(idx,1);else S.wrongBook.push(q.id);
+  saveState(S);
+  updateFavWrongBtns(q);
+  updateFavWrongBtns2(q);
+  updateBadges();
+}
+function updateFavWrongBtns(q){
+  const f=S.favorites.includes(q.id),w=S.wrongBook.includes(q.id);
+  document.getElementById('fav-icon').setAttribute('fill',f?'currentColor':'none');
+  document.getElementById('fav-icon').classList.toggle('text-yellow-500',f);
+  document.getElementById('fav-text').textContent=f?'取消收藏':'收藏';
+  document.getElementById('wrong-icon').classList.toggle('text-red-500',w);
+  document.getElementById('wrong-text').textContent=w?'移出错题':'加入错题';
+  document.getElementById('wrong-btn').classList.toggle('border-red-400',w);
+  document.getElementById('wrong-btn').classList.toggle('bg-red-50',w);
+}
+function updateFavWrongBtns2(q){
+  const f=S.favorites.includes(q.id),w=S.wrongBook.includes(q.id);
+  document.getElementById('fav-icon-2').setAttribute('fill',f?'currentColor':'none');
+  document.getElementById('fav-icon-2').classList.toggle('text-yellow-500',f);
+  document.getElementById('fav-text-2').textContent=f?'取消收藏':'收藏';
+  document.getElementById('wrong-icon-2').classList.toggle('text-red-500',w);
+  document.getElementById('wrong-text-2').textContent=w?'移出错题':'加入错题';
+  document.getElementById('wrong-btn-2').classList.toggle('border-red-400',w);
+  document.getElementById('wrong-btn-2').classList.toggle('bg-red-50',w);
+}
+function updateBadges(){
+  document.getElementById('fav-count').textContent=S.favorites.length;
+  document.getElementById('wrong-count').textContent=S.wrongBook.length;
+}
+
+// ============ Progress Reset ============
+function resetProgress(){
+  if(!confirm('确定要清空所有答题记录、收藏和错题吗？此操作不可恢复！'))return;
+  S={favorites:[],wrongBook:[],answered:{},correctCount:0,totalCount:0,examDate:S.examDate};
+  saveState(S);updateBadges();updateDashboard();renderQuestion();
+  showToast('已清空所有进度');
+}
+
+// ============ Navigation ============
+function startExam(examId){
+  currentMode='exam';
+  document.getElementById('filter-year').value=examId;
+  // Activate the matching sidebar item
+  document.querySelectorAll('.sidebar-item').forEach(item=>item.classList.remove('active'));
+  const match=document.querySelector(`.sidebar-item[data-exam-id="${examId}"]`);
+  if(match)match.classList.add('active');
+  applyFilter();
+  showPage('card');
+}
+function prevQ(){if(currentIdx>0){currentIdx--;renderQuestion()}}
+function nextQ(){if(currentIdx<filteredQ.length-1){currentIdx++;renderQuestion()}}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')prevQ();
+  else if(e.key==='ArrowRight')nextQ();
+  else if(e.key==='Enter'){const q=filteredQ[currentIdx];if(!S.answered[q?.id])submitAnswer()}
+});
+
+// ============ Toast ============
+function showToast(msg){
+  const t=document.createElement('div');
+  t.className='fixed top-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50 fade-in';
+  t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+
+init();
+</script>
+</body>
+</html>

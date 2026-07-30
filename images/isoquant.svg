@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 250" width="300" height="250">
+  <style>
+    text { font-family: 'SimSun', 'Microsoft YaHei', sans-serif; font-size: 12px; }
+    .axis { stroke: #333; stroke-width: 1.5; }
+    .curve { fill: none; stroke: #4F46E5; stroke-width: 2; }
+    .point { fill: #4F46E5; }
+    .label { fill: #333; }
+  </style>
+  <!-- Axes -->
+  <line x1="50" y1="200" x2="280" y2="200" class="axis" marker-end="url(#arrow)"/>
+  <line x1="50" y1="200" x2="50" y2="20" class="axis" marker-end="url(#arrow)"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/>
+    </marker>
+  </defs>
+  <!-- Labels -->
+  <text x="140" y="230" class="label">工人数</text>
+  <text x="10" y="120" class="label" transform="rotate(-90, 15, 120)">设备数</text>
+  <text x="135" y="15" class="label" font-weight="bold">等产量线</text>
+  <!-- Grid -->
+  <line x1="50" y1="60" x2="280" y2="60" stroke="#ddd" stroke-width="0.5"/>
+  <line x1="50" y1="110" x2="280" y2="110" stroke="#ddd" stroke-width="0.5"/>
+  <line x1="50" y1="155" x2="280" y2="155" stroke="#ddd" stroke-width="0.5"/>
+  <!-- Isoquant curve -->
+  <path d="M 240 55 C 200 70, 140 100, 100 155 C 80 175, 70 185, 60 190" class="curve"/>
+  <!-- Points -->
+  <circle cx="240" cy="55" r="4" class="point"/>
+  <circle cx="100" cy="155" r="4" class="point"/>
+  <!-- Point labels -->
+  <text x="244" y="48" class="label">(0, 200)</text>
+  <text x="108" y="148" class="label">(4, 100)</text>
+  <!-- Axis values -->
+  <text x="38" y="58" class="label" text-anchor="end">200</text>
+  <text x="38" y="158" class="label" text-anchor="end">100</text>
+  <text x="98" y="216" class="label">4</text>
+  <text x="240" y="216" class="label">0</text>
+</svg>
