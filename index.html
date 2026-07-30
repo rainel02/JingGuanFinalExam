@@ -249,11 +249,11 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 <script>
 window.EXAM_DATA=[];window.ALL_QUESTIONS=[];
 </script>
-<script src="data-2019c.js"></script>
-<script src="data-2019a.js"></script>
-<script src="data-2021a.js"></script>
-<script src="data-2022a.js"></script>
-<script src="data-2013a.js"></script>
+<script src="data/data-2019c.js"></script>
+<script src="data/data-2019a.js"></script>
+<script src="data/data-2021a.js"></script>
+<script src="data/data-2022a.js"></script>
+<script src="data/data-2013a.js"></script>
 <script>
 // ============ State ============
 let allQ=window.ALL_QUESTIONS, examData=window.EXAM_DATA;
@@ -458,10 +458,11 @@ function renderQuestion(){
   qText.textContent=q.question;
   // Render KaTeX
   try{renderMathInElement(qText,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false})}catch(e){}
-  // Image
+  // Images (url array)
   const imgArea=document.getElementById('q-image');
-  if(q.image){imgArea.classList.remove('hidden');document.getElementById('q-img').src=q.image}
-  else{imgArea.classList.add('hidden')}
+  const urls=q.url||[];
+  if(urls.length>0){imgArea.classList.remove('hidden');imgArea.innerHTML=urls.map(u=>`<img src="${u}" class="max-w-full rounded-lg border border-gray-100 mb-2" alt="题目图片" onerror="this.style.display='none'">`).join('')}
+  else{imgArea.classList.add('hidden');imgArea.innerHTML=''}
   // Reset all interaction areas
   ['q-options','q-fill','q-calc','q-submit','q-result','q-last-record','q-review-actions'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.getElementById('q-options').innerHTML='';
