@@ -37,8 +37,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 .stat-card{transition:all .2s ease}
 .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
 .q-cell{transition:all .15s ease;cursor:pointer}
-.q-cell:hover{transform:scale(1.15);z-index:1}
-.q-cell.current{outline:2px solid #4F46E5;outline-offset:1px}
+.q-cell:hover{transform:scale(1.1);z-index:10}
+.q-cell.current{outline:2px solid #4F46E5;outline-offset:0px}
 .scrollbar-hide-modal::-webkit-scrollbar{display:none}
 .scrollbar-hide-modal{-ms-overflow-style:none;scrollbar-width:none}
 </style>
@@ -86,9 +86,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 </aside>
 
 <!-- Main Content -->
-<main class="flex-1 flex overflow-hidden">
-  <div class="flex-1 flex flex-col overflow-hidden">
-    <!-- Filter Bar -->
+<main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Filter Bar - always visible -->
     <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-shrink-0">
       <select id="filter-year" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="applyFilter()"><option value="">全部年份</option></select>
       <select id="filter-type" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="applyFilter()">
@@ -129,90 +128,107 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
       </div>
 
       <!-- ===== Card View (Practice Mode) ===== -->
-      <div id="page-card" class="hidden max-w-3xl mx-auto p-6 fade-in">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-2">
-              <span id="q-type-badge" class="tag bg-indigo-100 text-indigo-700"></span>
-              <span id="q-source-badge" class="tag bg-gray-100 text-gray-600"></span>
-            </div>
-            <span id="q-index" class="text-sm text-gray-400"></span>
-          </div>
-          <div id="q-text" class="text-base leading-relaxed mb-4 whitespace-pre-line"></div>
-          <div id="q-image" class="mb-4 hidden"><img id="q-img" class="max-w-full rounded-lg border border-gray-100" alt="题目图表"></div>
-          <div id="q-options" class="space-y-2 mb-4 hidden"></div>
-          <div id="q-fill" class="mb-4 hidden">
-            <input id="fill-input" type="text" placeholder="输入你的答案..." class="w-full text-sm border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
-          </div>
-          <div id="q-calc" class="mb-4 hidden">
-            <button onclick="showCalcAnswer()" class="btn-primary bg-primary text-white text-sm px-4 py-2 rounded-lg">显示答案</button>
-          </div>
-          <div id="q-submit" class="flex items-center gap-3 mb-4 hidden">
-            <button onclick="submitAnswer()" class="btn-primary bg-primary text-white text-sm px-5 py-2 rounded-lg">提交答案</button>
-            <button onclick="showAnswerDirectly()" class="text-sm text-gray-400 hover:text-primary px-3 py-2">直接看答案</button>
-          </div>
-          <!-- Last Record (for review mode - shown in exam mode for answered questions) -->
-          <div id="q-last-record" class="hidden fade-in">
-            <div class="border-t border-gray-100 pt-3 mt-2">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">上次作答</span>
-                <span id="last-result-badge" class="text-xs font-semibold px-2 py-0.5 rounded"></span>
+      <div id="page-card" class="hidden p-6 fade-in">
+        <div class="flex gap-4 h-full">
+          <!-- Left: Question Card -->
+          <div class="flex-1 min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span id="q-type-badge" class="tag bg-indigo-100 text-indigo-700"></span>
+                  <span id="q-source-badge" class="tag bg-gray-100 text-gray-600"></span>
+                </div>
+                <span id="q-index" class="text-sm text-gray-400"></span>
               </div>
-              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">你的选择：</span><span id="last-user-answer" class="font-medium"></span></div>
-              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">正确答案：</span><span id="last-correct-answer" class="text-primary font-medium"></span></div>
-              <div id="last-explanation-area" class="text-sm text-gray-500 mt-2 hidden">
-                <span class="font-medium text-gray-700">解析：</span><span id="last-explanation-text" class="whitespace-pre-line"></span>
+              <div id="q-text" class="text-base leading-relaxed mb-4 whitespace-pre-line"></div>
+              <div id="q-image" class="mb-4 hidden"><img id="q-img" class="max-w-full rounded-lg border border-gray-100" alt="题目图表"></div>
+              <div id="q-options" class="space-y-2 mb-4 hidden"></div>
+              <div id="q-fill" class="mb-4 hidden">
+                <input id="fill-input" type="text" placeholder="输入你的答案..." class="w-full text-sm border border-gray-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+              </div>
+              <div id="q-calc" class="mb-4 hidden">
+                <button onclick="showCalcAnswer()" class="btn-primary bg-primary text-white text-sm px-4 py-2 rounded-lg">显示答案</button>
+              </div>
+              <div id="q-submit" class="flex items-center gap-3 mb-4 hidden">
+                <button onclick="submitAnswer()" class="btn-primary bg-primary text-white text-sm px-5 py-2 rounded-lg">提交答案</button>
+                <button onclick="showAnswerDirectly()" class="text-sm text-gray-400 hover:text-primary px-3 py-2">直接看答案</button>
+              </div>
+              <!-- Last Record (for review mode - shown in exam mode for answered questions) -->
+              <div id="q-last-record" class="hidden fade-in">
+                <div class="border-t border-gray-100 pt-3 mt-2">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded">上次作答</span>
+                    <span id="last-result-badge" class="text-xs font-semibold px-2 py-0.5 rounded"></span>
+                  </div>
+                  <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">你的选择：</span><span id="last-user-answer" class="font-medium"></span></div>
+                  <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">正确答案：</span><span id="last-correct-answer" class="text-primary font-medium"></span></div>
+                  <div id="last-explanation-area" class="text-sm text-gray-500 mt-2 hidden">
+                    <span class="font-medium text-gray-700">解析：</span><span id="last-explanation-text" class="whitespace-pre-line"></span>
+                  </div>
+                </div>
+              </div>
+              <!-- Result (shown after answering in current session) -->
+              <div id="q-result" class="hidden fade-in">
+                <div class="border-t border-gray-100 pt-4 mt-2">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span id="result-icon" class="text-lg"></span>
+                    <span id="result-text" class="text-sm font-semibold"></span>
+                  </div>
+                  <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">你的选择：</span><span id="result-user-answer" class="font-medium"></span></div>
+                  <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">正确答案：</span><span id="answer-text" class="text-primary font-medium"></span></div>
+                  <div id="explanation-area" class="text-sm text-gray-500 mt-2 hidden">
+                    <span class="font-medium text-gray-700">解析：</span><span id="explanation-text" class="whitespace-pre-line"></span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 mt-4 pt-3 border-t border-gray-50">
+                  <button id="redo-btn" onclick="redoQuestion()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary hover:bg-indigo-50 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    重做此题
+                  </button>
+                  <button id="fav-btn" onclick="toggleFavorite()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
+                    <svg id="fav-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.599 5.777a1 1 0 00.95.69h5.682c.969 0 1.371 1.24.588 1.81l-4.6 3.462a1 1 0 00-.363 1.118l1.723 5.516c.3.921-.755 1.688-1.54 1.118l-4.788-3.48a1 1 0 00-1.175 0l-4.788 3.48c-.784.57-1.838-.197-1.539-1.118L6.17 15.08a1 1 0 00-.363-1.118L1.2 10.607c-.783-.57-.38-1.81.588-1.81h5.682a1 1 0 00.95-.69l1.6-5.777z"/></svg>
+                    <span id="fav-text">收藏</span>
+                  </button>
+                  <button id="wrong-btn" onclick="toggleWrongBook()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 transition-colors">
+                    <svg id="wrong-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span id="wrong-text">加入错题</span>
+                  </button>
+                </div>
+              </div>
+              <!-- Action buttons for answered questions in exam mode (review) -->
+              <div id="q-review-actions" class="hidden mt-4 pt-3 border-t border-gray-50 flex items-center gap-3">
+                <button onclick="redoQuestion()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary hover:bg-indigo-50 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  重做此题
+                </button>
+                <button id="fav-btn-2" onclick="toggleFavorite()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
+                  <svg id="fav-icon-2" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.599 5.777a1 1 0 00.95.69h5.682c.969 0 1.371 1.24.588 1.81l-4.6 3.462a1 1 0 00-.363 1.118l1.723 5.516c.3.921-.755 1.688-1.54 1.118l-4.788-3.48a1 1 0 00-1.175 0l-4.788 3.48c-.784.57-1.838-.197-1.539-1.118L6.17 15.08a1 1 0 00-.363-1.118L1.2 10.607c-.783-.57-.38-1.81.588-1.81h5.682a1 1 0 00.95-.69l1.6-5.777z"/></svg>
+                  <span id="fav-text-2">收藏</span>
+                </button>
+                <button id="wrong-btn-2" onclick="toggleWrongBook()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 transition-colors">
+                  <svg id="wrong-icon-2" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <span id="wrong-text-2">加入错题</span>
+                </button>
               </div>
             </div>
-          </div>
-          <!-- Result (shown after answering in current session) -->
-          <div id="q-result" class="hidden fade-in">
-            <div class="border-t border-gray-100 pt-4 mt-2">
-              <div class="flex items-center gap-2 mb-2">
-                <span id="result-icon" class="text-lg"></span>
-                <span id="result-text" class="text-sm font-semibold"></span>
-              </div>
-              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">你的选择：</span><span id="result-user-answer" class="font-medium"></span></div>
-              <div class="text-sm text-gray-600 mb-1"><span class="font-medium text-gray-700">正确答案：</span><span id="answer-text" class="text-primary font-medium"></span></div>
-              <div id="explanation-area" class="text-sm text-gray-500 mt-2 hidden">
-                <span class="font-medium text-gray-700">解析：</span><span id="explanation-text" class="whitespace-pre-line"></span>
-              </div>
-            </div>
-            <div class="flex items-center gap-3 mt-4 pt-3 border-t border-gray-50">
-              <button id="redo-btn" onclick="redoQuestion()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary hover:bg-indigo-50 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                重做此题
-              </button>
-              <button id="fav-btn" onclick="toggleFavorite()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
-                <svg id="fav-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.599 5.777a1 1 0 00.95.69h5.682c.969 0 1.371 1.24.588 1.81l-4.6 3.462a1 1 0 00-.363 1.118l1.723 5.516c.3.921-.755 1.688-1.54 1.118l-4.788-3.48a1 1 0 00-1.175 0l-4.788 3.48c-.784.57-1.838-.197-1.539-1.118L6.17 15.08a1 1 0 00-.363-1.118L1.2 10.607c-.783-.57-.38-1.81.588-1.81h5.682a1 1 0 00.95-.69l1.6-5.777z"/></svg>
-                <span id="fav-text">收藏</span>
-              </button>
-              <button id="wrong-btn" onclick="toggleWrongBook()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 transition-colors">
-                <svg id="wrong-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span id="wrong-text">加入错题</span>
-              </button>
+            <div class="flex items-center justify-between mt-4">
+              <button onclick="prevQ()" id="prev-btn" class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary px-3 py-2 rounded-lg hover:bg-gray-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>上一题</button>
+              <div class="text-sm text-gray-400"><span id="current-idx" class="font-semibold text-gray-600">1</span> / <span id="total-idx">0</span></div>
+              <button onclick="nextQ()" id="next-btn" class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary px-3 py-2 rounded-lg hover:bg-gray-50">下一题<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
             </div>
           </div>
-          <!-- Action buttons for answered questions in exam mode (review) -->
-          <div id="q-review-actions" class="hidden mt-4 pt-3 border-t border-gray-50 flex items-center gap-3">
-            <button onclick="redoQuestion()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-primary hover:bg-indigo-50 transition-colors">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-              重做此题
-            </button>
-            <button id="fav-btn-2" onclick="toggleFavorite()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-yellow-400 hover:bg-yellow-50 transition-colors">
-              <svg id="fav-icon-2" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.599 5.777a1 1 0 00.95.69h5.682c.969 0 1.371 1.24.588 1.81l-4.6 3.462a1 1 0 00-.363 1.118l1.723 5.516c.3.921-.755 1.688-1.54 1.118l-4.788-3.48a1 1 0 00-1.175 0l-4.788 3.48c-.784.57-1.838-.197-1.539-1.118L6.17 15.08a1 1 0 00-.363-1.118L1.2 10.607c-.783-.57-.38-1.81.588-1.81h5.682a1 1 0 00.95-.69l1.6-5.777z"/></svg>
-              <span id="fav-text-2">收藏</span>
-            </button>
-            <button id="wrong-btn-2" onclick="toggleWrongBook()" class="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 hover:border-red-400 hover:bg-red-50 transition-colors">
-              <svg id="wrong-icon-2" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span id="wrong-text-2">加入错题</span>
-            </button>
+          <!-- Right: Question Navigation -->
+          <div class="w-52 flex-shrink-0">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sticky top-0">
+              <h3 class="text-xs font-semibold text-gray-600 mb-2">题目导航</h3>
+              <div class="flex items-center gap-2 mb-2 text-[10px] text-gray-400">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-green-500 inline-block"></span>对</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-500 inline-block"></span>错</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-200 inline-block"></span>未做</span>
+              </div>
+              <div id="q-grid" class="overflow-y-auto scrollbar-thin max-h-[calc(100vh-220px)] py-2 px-1"><div id="q-grid-inner" class="grid grid-cols-4 gap-x-2 gap-y-2"></div></div>
+            </div>
           </div>
-        </div>
-        <div class="flex items-center justify-between mt-4">
-          <button onclick="prevQ()" id="prev-btn" class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary px-3 py-2 rounded-lg hover:bg-gray-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>上一题</button>
-          <div class="text-sm text-gray-400"><span id="current-idx" class="font-semibold text-gray-600">1</span> / <span id="total-idx">0</span></div>
-          <button onclick="nextQ()" id="next-btn" class="flex items-center gap-1 text-sm text-gray-500 hover:text-primary px-3 py-2 rounded-lg hover:bg-gray-50">下一题<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
         </div>
       </div>
 
@@ -322,21 +338,7 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
         <p class="text-gray-400 text-sm">暂无匹配的题目</p>
       </div>
     </div>
-  </div>
-
-  <!-- Right Sidebar: Question Grid -->
-  <aside id="right-sidebar" class="w-44 bg-white border-l border-gray-200 flex-shrink-0 hidden flex-col">
-    <div class="px-3 py-3 border-b border-gray-100">
-      <h3 class="text-xs font-semibold text-gray-600">题目导航</h3>
-      <div class="flex items-center gap-2 mt-2 text-[10px] text-gray-400">
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-green-500 inline-block"></span>对</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-500 inline-block"></span>错</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-200 inline-block"></span>未做</span>
-      </div>
-    </div>
-    <div id="q-grid" class="flex-1 overflow-y-auto scrollbar-thin p-2"><div id="q-grid-inner" class="grid grid-cols-4 gap-1"></div></div>
-  </aside>
-</main>
+  </main>
 
 <!-- Exam Detail Modal -->
 <div id="exam-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
@@ -425,10 +427,6 @@ function showPage(name){
   document.getElementById('view-list-btn').classList.toggle('shadow-sm',name==='list');
   document.getElementById('view-list-btn').classList.toggle('text-primary',name==='list');
   document.getElementById('view-list-btn').classList.toggle('text-gray-500',name!=='list');
-  // Right sidebar: show only in card mode
-  const rs=document.getElementById('right-sidebar');
-  rs.classList.toggle('hidden',name!=='card');
-  rs.classList.toggle('flex',name==='card');
   if(name==='dashboard')updateDashboard();
   if(name==='list')renderList();
   if(name==='card')renderQuestion();
@@ -553,7 +551,7 @@ function renderQGrid(){
   if(!inner){
     inner=document.createElement('div');
     inner.id='q-grid-inner';
-    inner.className='grid grid-cols-4 gap-1';
+    inner.className='grid grid-cols-4 gap-x-2 gap-y-3';
     grid.appendChild(inner);
   }
   inner.innerHTML=filteredQ.map((q,i)=>{
