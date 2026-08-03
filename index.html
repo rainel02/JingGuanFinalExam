@@ -39,6 +39,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 .q-cell{transition:all .15s ease;cursor:pointer}
 .q-cell:hover{transform:scale(1.15);z-index:1}
 .q-cell.current{outline:2px solid #4F46E5;outline-offset:1px}
+.scrollbar-hide-modal::-webkit-scrollbar{display:none}
+.scrollbar-hide-modal{-ms-overflow-style:none;scrollbar-width:none}
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800 h-screen flex overflow-hidden">
@@ -336,6 +338,55 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
   </aside>
 </main>
 
+<!-- Exam Detail Modal -->
+<div id="exam-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeExamModal()"></div>
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto scrollbar-hide-modal fade-in">
+    <!-- Header -->
+    <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+      <h2 id="modal-exam-title" class="text-lg font-bold text-gray-800"></h2>
+      <button onclick="closeExamModal()" class="text-gray-400 hover:text-gray-600 transition p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <!-- Body -->
+    <div class="px-6 py-4 space-y-5">
+      <!-- Exam Info -->
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 mb-3">📋 试卷详情</h3>
+        <div id="modal-exam-info" class="bg-gray-50 rounded-xl p-4 space-y-2 text-sm"></div>
+      </div>
+      <!-- Progress Stats -->
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 mb-3">📊 做题情况</h3>
+        <div id="modal-exam-progress" class="bg-gray-50 rounded-xl p-4 space-y-2 text-sm"></div>
+      </div>
+      <!-- Download -->
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 mb-3">📥 下载试卷文件</h3>
+        <div id="modal-exam-download" class="bg-gray-50 rounded-xl p-4 text-sm"></div>
+      </div>
+      <!-- Import / Export -->
+      <div>
+        <h3 class="text-sm font-semibold text-gray-500 mb-3">💾 数据导入/导出</h3>
+        <div class="bg-gray-50 rounded-xl p-4 flex items-center gap-3 flex-wrap">
+          <button onclick="exportExamFromModal('json')" class="text-xs bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            导出 JSON
+          </button>
+          <button onclick="exportExamFromModal('md')" class="text-xs bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            导出 Markdown
+          </button>
+          <button onclick="triggerImportExam()" class="text-xs bg-green-500 text-white px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            导入数据
+          </button>
+          <input type="file" id="import-exam-file" accept=".json" class="hidden" onchange="handleImportExamFile(event)">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 window.EXAM_DATA=[];window.ALL_QUESTIONS=[];
 </script>
@@ -398,7 +449,7 @@ function init(){
     const it=document.createElement('div');
     it.className='sidebar-item rounded-lg px-3 py-2.5 cursor-pointer flex items-center gap-2 text-sm pl-6';
     const cnt=allQ.filter(q=>q.source===e.id).length;
-    it.innerHTML=`<span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>${e.name} <span class="tag bg-gray-100 text-gray-500">${cnt}</span>`;
+    it.innerHTML=`<span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span><span class="flex-1 truncate">${e.name} <span class="tag bg-gray-100 text-gray-500">${cnt}</span></span><button class="info-btn text-gray-400 hover:text-primary p-0.5 rounded transition" onclick="event.stopPropagation();showExamModal('${e.id}')" title="试卷详情"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>`;
     it.dataset.examId=e.id;
     it.onclick=()=>{currentMode='exam';document.getElementById('filter-year').value=e.id;setActiveSidebar(it);applyFilter();showPage('card')};
     sb.appendChild(it);
@@ -1043,6 +1094,104 @@ function downloadFile(blob,filename){
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ---- Exam File Map ----
+const EXAM_FILES={
+  '2019-2020-C':{doc:'往届期末试题/2019-2020经管期末试题1.pdf',ans:'往届期末试题/2019-2020经管期末答案2_部分.pdf'},
+  '2019-2020-A':{doc:'往届期末试题/2019-2020经管期末试题2.pdf',ans:'往届期末试题/2019-2020经管期末答案2_部分.pdf'},
+  '2021-2022-A':{doc:'往届期末试题/2021-2022经管期末试题.pdf',ans:'往届期末试题/2021-2022经管期末答案.pdf'},
+  '2022-2023-A':{doc:'往届期末试题/2022-2023经管期末试题.pdf'},
+  '2013-2014-A':{doc:'往届期末试题/2013-2014经管A卷填空选择_部分1.pdf'},
+  '2007-2008-B2':{doc:'往届期末试题/2007-2008第2学期北航经济管理概论试题与解答B卷1.doc'},
+  '2007-2008-A2':{doc:'往届期末试题/2007-2008第2学期北航经济管理概论试题与解答A卷1.doc'},
+  '2006-2007-B2':{doc:'往届期末试题/2006-2007第2学期北航经济管理概论试题与解答B卷1.doc'},
+  '2006-2007-A2':{doc:'往届期末试题/2006-2007第2学期北航经济管理概论试题与解答A卷1.doc'},
+  '2006-2007-A1':{doc:'往届期末试题/2006-2007第1学期北航经济管理概论试题与解答A卷1.doc'},
+  '2005-2006-B2':{doc:'往届期末试题/2005-2006第2学期北航经济管理概论试题与解答B卷1.doc'},
+  '200n-A1':{doc:'往届期末试题/200n-200m第1学期北航经济管理概论试题A卷1.doc',ans:'往届期末试题/200n-200m第1学期北航经济管理概论解答A卷1.doc'}
+};
+
+let _currentModalExamId=null;
+
+function showExamModal(examId){
+  _currentModalExamId=examId;
+  const e=examData.find(x=>x.id===examId);
+  if(!e)return;
+  document.getElementById('modal-exam-title').textContent=e.name;
+  // Exam Info
+  const qs=allQ.filter(q=>q.source===examId);
+  const types={};
+  qs.forEach(q=>{types[q.type]=(types[q.type]||0)+1});
+  let infoHtml=`<div class="flex justify-between"><span class="text-gray-500">学年</span><span class="font-medium">${e.year}</span></div>`;
+  infoHtml+=`<div class="flex justify-between"><span class="text-gray-500">学期</span><span class="font-medium">${e.semester}</span></div>`;
+  infoHtml+=`<div class="flex justify-between"><span class="text-gray-500">试卷</span><span class="font-medium">${e.paper}</span></div>`;
+  infoHtml+=`<div class="flex justify-between"><span class="text-gray-500">总题量</span><span class="font-medium">${qs.length} 题</span></div>`;
+  infoHtml+=`<div class="flex justify-between"><span class="text-gray-500">题型分布</span><span class="font-medium">${Object.entries(types).map(([t,c])=>`${t}${c}题`).join(' / ')}</span></div>`;
+  document.getElementById('modal-exam-info').innerHTML=infoHtml;
+  // Progress Stats
+  const done=qs.filter(q=>S.answered[q.id]).length;
+  const correct=qs.filter(q=>S.answered[q.id]&&S.answered[q.id].isCorrect===true).length;
+  const wrong=qs.filter(q=>S.answered[q.id]&&S.answered[q.id].isCorrect===false).length;
+  const fav=qs.filter(q=>S.favorites.includes(q.id)).length;
+  const pct=qs.length>0?Math.round(done/qs.length*100):0;
+  const accPct=done>0?Math.round(correct/done*100):0;
+  let pHtml=`<div class="flex justify-between"><span class="text-gray-500">已做题</span><span class="font-medium">${done} / ${qs.length} (${pct}%)</span></div>`;
+  pHtml+=`<div class="flex justify-between"><span class="text-gray-500">正确</span><span class="font-medium text-green-600">${correct}</span></div>`;
+  pHtml+=`<div class="flex justify-between"><span class="text-gray-500">错误</span><span class="font-medium text-red-600">${wrong}</span></div>`;
+  pHtml+=`<div class="flex justify-between"><span class="text-gray-500">正确率</span><span class="font-medium">${accPct}%</span></div>`;
+  pHtml+=`<div class="flex justify-between"><span class="text-gray-500">收藏</span><span class="font-medium text-yellow-600">${fav}</span></div>`;
+  pHtml+=`<div class="mt-2"><div class="bg-gray-200 rounded-full h-3"><div class="bg-primary rounded-full h-3 transition-all" style="width:${pct}%"></div></div></div>`;
+  document.getElementById('modal-exam-progress').innerHTML=pHtml;
+  // Download
+  const files=EXAM_FILES[examId];
+  let dlHtml='';
+  if(files){
+    if(files.doc)dlHtml+=`<a href="${files.doc}" download class="inline-flex items-center gap-2 bg-indigo-50 text-primary px-4 py-2 rounded-lg hover:bg-indigo-100 transition text-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>下载试题</a>`;
+    if(files.ans)dlHtml+=` <a href="${files.ans}" download class="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-lg hover:bg-green-100 transition text-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>下载答案</a>`;
+  }else{
+    dlHtml='<span class="text-gray-400">暂无试卷文件</span>';
+  }
+  document.getElementById('modal-exam-download').innerHTML=dlHtml;
+  document.getElementById('exam-modal').classList.remove('hidden');
+}
+
+function closeExamModal(){
+  document.getElementById('exam-modal').classList.add('hidden');
+  _currentModalExamId=null;
+}
+
+function exportExamFromModal(fmt){
+  if(!_currentModalExamId)return;
+  const origSel=document.getElementById('export-exam-select').value;
+  document.getElementById('export-exam-select').value=_currentModalExamId;
+  if(fmt==='json')exportJSON('exam');else exportMD('exam');
+  document.getElementById('export-exam-select').value=origSel;
+}
+
+function triggerImportExam(){
+  document.getElementById('import-exam-file').click();
+}
+
+function handleImportExamFile(ev){
+  const file=ev.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.version||!data.scope){showToast('文件格式不正确');return}
+      if(data.scope!=='exam'||!data.examId){showToast('请使用试卷导出的 JSON 文件');return}
+      applyImportData(data);
+      if(_currentModalExamId)showExamModal(_currentModalExamId);
+      showToast('导入完成');
+    }catch(err){showToast('导入失败：文件格式错误')}
+  };
+  reader.readAsText(file);
+  ev.target.value='';
+}
+
+// Keyboard: Escape closes modal
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&_currentModalExamId)closeExamModal()});
 
 init();
 </script>
