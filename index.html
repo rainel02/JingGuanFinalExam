@@ -339,11 +339,18 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 <script>
 window.EXAM_DATA=[];window.ALL_QUESTIONS=[];
 </script>
-<script src="data/data-2019c.js"></script>
+<script src="data/data-200na1.js"></script>
+<script src="data/data-2005b2.js"></script>
+<script src="data/data-2006a1.js"></script>
+<script src="data/data-2006a2.js"></script>
+<script src="data/data-2006b2.js"></script>
+<script src="data/data-2007a2.js"></script>
+<script src="data/data-2007b2.js"></script>
+<script src="data/data-2013a.js"></script>
 <script src="data/data-2019a.js"></script>
+<script src="data/data-2019c.js"></script>
 <script src="data/data-2021a.js"></script>
 <script src="data/data-2022a.js"></script>
-<script src="data/data-2013a.js"></script>
 <script>
 // ============ State ============
 let allQ=window.ALL_QUESTIONS, examData=window.EXAM_DATA;
@@ -667,7 +674,7 @@ function showLastRecord(q,r){
   const ansEl=document.getElementById('last-correct-answer');
   ansEl.textContent=q.answer||'暂无答案';
   try{renderMathInElement(ansEl,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false})}catch(e){}
-  if(q.explanation){document.getElementById('last-explanation-area').classList.remove('hidden');document.getElementById('last-explanation-text').textContent=q.explanation}
+  if(q.explanation){document.getElementById('last-explanation-area').classList.remove('hidden');const lexEl=document.getElementById('last-explanation-text');lexEl.textContent=q.explanation;try{renderMathInElement(lexEl,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false})}catch(e){}}
   else document.getElementById('last-explanation-area').classList.add('hidden');
 }
 
@@ -728,7 +735,7 @@ function showResult(q,r){
   const ansEl=document.getElementById('answer-text');
   ansEl.textContent=q.answer||'暂无答案';
   try{renderMathInElement(ansEl,{delimiters:[{left:'\\(',right:'\\)',display:false}],throwOnError:false})}catch(e){}
-  if(q.explanation){document.getElementById('explanation-area').classList.remove('hidden');document.getElementById('explanation-text').textContent=q.explanation}
+  if(q.explanation){document.getElementById('explanation-area').classList.remove('hidden');const exEl=document.getElementById('explanation-text');exEl.textContent=q.explanation;try{renderMathInElement(exEl,{delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],throwOnError:false})}catch(e){}}
   else document.getElementById('explanation-area').classList.add('hidden');
   document.getElementById('q-submit').classList.add('hidden');
   if(q.type==='计算')document.getElementById('q-calc').classList.add('hidden');
@@ -885,45 +892,97 @@ function exportJSON(scope){
 function exportMD(scope){
   const data=buildExportData(scope);
   const title={all:'全部数据',fav:'收藏夹',wrong:'错题库',answered:'答题记录',exam:data.examName||'试卷'}[scope];
-  let md=`# 经管刷题系统 — ${title}\n\n`;
-  md+=`> 导出时间：${new Date().toLocaleString('zh-CN')}\n\n`;
-  // Summary
-  md+=`## 概览\n\n`;
-  if(data.favorites)md+=`- 收藏题目：${data.favorites.length} 题\n`;
-  if(data.wrongBook)md+=`- 错题：${data.wrongBook.length} 题\n`;
+  let md=`# 📚 经管刷题系统 — ${title}\n\n`;
+  md+=`> 📅 导出时间：${new Date().toLocaleString('zh-CN')}\n\n`;
+  // ---- Summary ----
+  md+=`## 📊 概览\n\n`;
+  if(data.favorites)md+=`- ⭐ 收藏题目：**${data.favorites.length}** 题\n`;
+  if(data.wrongBook)md+=`- ❌ 错题：**${data.wrongBook.length}** 题\n`;
   if(data.answered){
     const total=Object.keys(data.answered).length;
     const correct=Object.values(data.answered).filter(r=>r.isCorrect===true).length;
-    md+=`- 已做题：${total} 题\n`;
-    if(total>0)md+=`- 正确率：${Math.round(correct/total*100)}%\n`;
+    const wrong=Object.values(data.answered).filter(r=>r.isCorrect===false).length;
+    const viewed=Object.values(data.answered).filter(r=>r.isCorrect===null).length;
+    md+=`- ✍️ 已做题：**${total}** 题\n`;
+    if(total>0){
+      md+=`  - ✅ 正确：${correct} 题\n`;
+      md+=`  - ❌ 错误：${wrong} 题\n`;
+      md+=`  - 📖 查看答案：${viewed} 题\n`;
+      md+=`  - 🎯 正确率：**${Math.round(correct/total*100)}%**\n`;
+    }
   }
   md+='\n---\n\n';
-  // Question details
+  // ---- Question details ----
   if(data.questions&&data.questions.length>0){
-    md+=`## 题目列表\n\n`;
-    // Group by type
-    const byType={};
-    data.questions.forEach(q=>{if(!byType[q.type])byType[q.type]=[];byType[q.type].push(q)});
-    const typeLabels={填空:'填空题',单选:'单选题',多选:'多选题',判断:'判断题',计算:'计算题'};
-    Object.keys(byType).forEach(type=>{
-      md+=`### ${typeLabels[type]||type}\n\n`;
-      byType[type].forEach((q,i)=>{
-        md+=`**${i+1}.** [${q.id}] ${q.question}\n\n`;
-        if(q.options&&q.options.length>0)md+=`   选项：${q.options.join(' | ')}\n\n`;
-        md+=`   ✅ 正确答案：${q.answer}\n\n`;
-        if(q.userAnswer!==undefined&&q.userAnswer!==''){
-          const icon=q.isCorrect===true?'✅':q.isCorrect===false?'❌':'📖';
-          md+=`   ${icon} 你的答案：${q.userAnswer}\n\n`;
-        }
-        if(q.explanation&&q.explanation.trim())md+=`   💡 解析：${q.explanation}\n\n`;
-        if(q.url&&q.url.length>0)md+=`   🖼️ 图片：${q.url.join(', ')}\n\n`;
+    const bySource={};
+    data.questions.forEach(q=>{if(!bySource[q.source])bySource[q.source]=[];bySource[q.source].push(q)});
+    const srcOrder=examData.map(e=>e.id);
+    const sortedSrc=Object.keys(bySource).sort((a,b)=>srcOrder.indexOf(a)-srcOrder.indexOf(b));
+    const typeLabels={填空:'✏️ 填空题',单选:'🔘 单选题',多选:'☑️ 多选题',判断:'⚖️ 判断题',计算:'🧮 计算题'};
+    const typeOrder=['填空','单选','多选','判断','计算'];
+    sortedSrc.forEach(srcId=>{
+      const srcName=examData.find(e=>e.id===srcId)?.name||srcId;
+      md+=`## 📋 ${srcName}\n\n`;
+      const qs=bySource[srcId];
+      const byType={};
+      qs.forEach(q=>{if(!byType[q.type])byType[q.type]=[];byType[q.type].push(q)});
+      typeOrder.forEach(type=>{
+        if(!byType[type])return;
+        md+=`### ${typeLabels[type]||type}\n\n`;
+        byType[type].forEach((q,i)=>{
+          // Question as bold heading
+          md+=`**${i+1}.** ${q.question}\n\n`;
+          // Options as bullet list with markers
+          if(q.options&&q.options.length>0){
+            q.options.forEach(opt=>{
+              const letter=q.type==='判断'?opt:opt.charAt(0);
+              const isCorrect=q.type==='判断'?q.answer===opt:q.answer.includes(letter);
+              const isUser=q.userAnswer&&(q.type==='判断'?q.userAnswer===opt:q.userAnswer.includes(letter));
+              let marker='⬜';
+              if(isCorrect&&isUser)marker='✅';
+              else if(isCorrect)marker='✅';
+              else if(isUser&&!isCorrect)marker='❌';
+              md+=`- ${marker} ${opt}\n`;
+            });
+            md+='\n';
+          }
+          // Answer info as bullet list
+          md+=`- ✅ **正确答案：** ${q.answer}\n`;
+          if(q.userAnswer!==undefined&&q.userAnswer!==''){
+            const label=q.isCorrect===true?'✅ 回答正确':q.isCorrect===false?'❌ 回答错误':'📖 查看答案';
+            md+=`- ${label.split(' ')[0]} **你的答案：** ${q.userAnswer}\n`;
+          }
+          if(q.explanation&&q.explanation.trim()){
+            md+=`- 💡 **解析：** ${q.explanation}\n`;
+          }
+          if(q.url&&q.url.length>0){
+            md+=`- 🖼️ **题目图片：**\n`;
+            q.url.forEach(u=>{md+=`  - ![](${u})\n`});
+          }
+          md+='\n---\n\n';
+        });
       });
     });
   }
-  // JSON appendix
-  md+=`---\n\n`;
-  md+=`## JSON 原始数据\n\n`;
-  md+=`\`\`\`json\n${JSON.stringify(data,null,2)}\n\`\`\`\n`;
+  // ---- Fav/wrong summary for "all" scope ----
+  if(scope==='all'){
+    if(data.favorites&&data.favorites.length>0){
+      md+=`## ⭐ 收藏夹题目\n\n`;
+      data.favorites.forEach(id=>{
+        const q=allQ.find(q=>q.id===id);
+        if(q)md+=`- **[${q.type}]** ${q.question.substring(0,80)}${q.question.length>80?'...':''}\n`;
+      });
+      md+='\n';
+    }
+    if(data.wrongBook&&data.wrongBook.length>0){
+      md+=`## ❌ 错题库题目\n\n`;
+      data.wrongBook.forEach(id=>{
+        const q=allQ.find(q=>q.id===id);
+        if(q)md+=`- **[${q.type}]** ${q.question.substring(0,80)}${q.question.length>80?'...':''}\n`;
+      });
+      md+='\n';
+    }
+  }
   const blob=new Blob([md],{type:'text/markdown;charset=utf-8'});
   downloadFile(blob,`经管刷题_${title}_${formatDate()}.md`);
   showToast(`已导出 ${title} (Markdown)`);
