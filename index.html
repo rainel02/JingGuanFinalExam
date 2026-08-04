@@ -42,18 +42,21 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 .scrollbar-hide-modal::-webkit-scrollbar{display:none}
 .scrollbar-hide-modal{-ms-overflow-style:none;scrollbar-width:none}
 /* Collapsible sidebar */
-#left-sidebar.collapsed{width:52px}
+#left-sidebar.collapsed{width:0;padding:0;border:none}
 #left-sidebar.collapsed .sidebar-label{opacity:0;width:0;overflow:hidden;white-space:nowrap}
 #left-sidebar.collapsed #sidebar-footer{display:none}
 #left-sidebar.collapsed #sidebar-toggle{display:none}
+#left-sidebar.collapsed #sidebar-nav{display:none}
+#left-sidebar.collapsed .p-5{display:none}
 /* Floating question navigation */
 #q-nav-float{position:fixed;z-index:30}
-#q-nav-float.minimized{bottom:20px;right:20px;width:44px;height:44px;border-radius:50%;box-shadow:0 4px 14px rgba(79,70,229,.4);transition:transform .15s ease,opacity .15s ease}
-#q-nav-float.minimized:hover{transform:scale(1.1)}
+#q-nav-float.minimized{bottom:20px;right:20px;width:44px;height:44px;border-radius:50%;box-shadow:0 4px 14px rgba(79,70,229,.4);transition:transform .2s ease,box-shadow .2s ease}
+#q-nav-float.minimized:hover{transform:scale(1.15);box-shadow:0 6px 20px rgba(79,70,229,.5)}
 #q-nav-float.expanded{bottom:16px;right:16px;width:220px;max-height:calc(100vh - 60px);border-radius:16px}
-#q-nav-float.fade-out{opacity:0;transform:scale(.7);pointer-events:none}
-#q-nav-float.fade-in{animation:floatFadeIn .2s ease forwards}
-@keyframes floatFadeIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes floatExpand{0%{opacity:0;transform:translateY(12px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes floatCollapse{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.6)}}
+#q-nav-float.anim-expand{animation:floatExpand .22s ease-out forwards}
+#q-nav-float.anim-collapse{animation:floatCollapse .15s ease-in forwards}
 
 </style>
 </head>
@@ -104,9 +107,12 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 <!-- Main Content -->
 <main class="flex-1 flex flex-col overflow-hidden relative">
     <!-- Sidebar expand button (visible when collapsed) -->
-    <button id="sidebar-expand-btn" class="hidden absolute top-3 left-3 z-10 text-gray-400 hover:text-gray-600 transition p-1.5 rounded-lg hover:bg-gray-100" onclick="toggleSidebar()" title="展开侧边栏">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
-    </button>
+    <div id="sidebar-expand-bar" class="hidden bg-white border-b border-gray-100 px-3 py-1.5 flex-shrink-0">
+      <button id="sidebar-expand-btn" class="text-gray-400 hover:text-gray-600 transition p-1 rounded hover:bg-gray-100 flex items-center gap-1.5" onclick="toggleSidebar()" title="展开侧边栏">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+        <span class="text-xs text-gray-400">展开侧边栏</span>
+      </button>
+    </div>
     <!-- Filter Bar -->
     <div id="filter-bar" class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-shrink-0">
       <select id="filter-year" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="onYearFilterChange()"><option value="">全部年份</option><option value="__fav__">收藏夹</option><option value="__wrong__">错题库</option></select>
@@ -465,7 +471,7 @@ function showPage(name){
 function init(){
   document.getElementById('exam-date').value=S.examDate||'2027-01-15';
   // Restore sidebar state
-  if(localStorage.getItem('jg_sidebar_collapsed')==='1'){_sidebarCollapsed=true;document.getElementById('left-sidebar').classList.add('collapsed');document.getElementById('sidebar-expand-btn').classList.remove('hidden')}
+  if(localStorage.getItem('jg_sidebar_collapsed')==='1'){_sidebarCollapsed=true;document.getElementById('left-sidebar').classList.add('collapsed');document.getElementById('sidebar-expand-bar').classList.remove('hidden')}
   // Init responsive q-nav float
   const sb=document.getElementById('sidebar-exams');
   const allItem=document.createElement('div');
@@ -497,9 +503,9 @@ let _sidebarCollapsed=false;
 function toggleSidebar(){
   _sidebarCollapsed=!_sidebarCollapsed;
   const sb=document.getElementById('left-sidebar');
-  const btn=document.getElementById('sidebar-expand-btn');
+  const bar=document.getElementById('sidebar-expand-bar');
   sb.classList.toggle('collapsed',_sidebarCollapsed);
-  btn.classList.toggle('hidden',!_sidebarCollapsed);
+  bar.classList.toggle('hidden',!_sidebarCollapsed);
   localStorage.setItem('jg_sidebar_collapsed',_sidebarCollapsed?'1':'0');
 }
 
@@ -512,16 +518,16 @@ function toggleQNavFloat(){
   _qNavFloatExpanded=!_qNavFloatExpanded;
   if(_qNavFloatExpanded)_qNavAnimating=true;
   updateQNavFloatUI();
-  if(_qNavFloatExpanded)setTimeout(()=>{_qNavAnimating=false},350);
+  if(_qNavFloatExpanded)setTimeout(()=>{_qNavAnimating=false},400);
 }
 function updateQNavFloatUI(){
   const fl=document.getElementById('q-nav-float');
   if(!fl)return;
   if(_qNavFloatExpanded){
-    // Fade out minimized circle first, then show expanded panel
-    fl.classList.add('fade-out');
+    // Collapse the minimized circle, then expand the panel
+    fl.classList.add('anim-collapse');
     setTimeout(()=>{
-      fl.className='expanded bg-white border border-gray-200 shadow-xl overflow-hidden flex flex-col fade-in';
+      fl.className='expanded bg-white border border-gray-200 shadow-xl overflow-hidden flex flex-col anim-expand';
       fl.onclick=null;
       fl.innerHTML=`
       <div class="flex items-center justify-between px-3 py-2 border-b border-gray-100 bg-gray-50 flex-shrink-0">
@@ -538,12 +544,15 @@ function updateQNavFloatUI(){
       const src=document.getElementById('q-grid-inner');
       const dst=document.getElementById('q-grid-float-inner');
       if(src&&dst)dst.innerHTML=src.innerHTML;
-    },150);
+    },160);
   }else{
-    // Instant switch back to minimized (no ugly shape morph)
-    fl.className='minimized bg-primary text-white shadow-lg cursor-pointer flex items-center justify-center fade-in';
-    fl.onclick=toggleQNavFloat;
-    fl.innerHTML='<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>';
+    // Collapse panel, then show minimized circle
+    fl.classList.add('anim-collapse');
+    setTimeout(()=>{
+      fl.className='minimized bg-primary text-white shadow-lg cursor-pointer flex items-center justify-center anim-expand';
+      fl.onclick=toggleQNavFloat;
+      fl.innerHTML='<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>';
+    },160);
   }
 }
 function checkQNavResponsive(){
