@@ -941,6 +941,7 @@ document.addEventListener('keydown',e=>{
       return;
     }
     if(e.key==='i'||e.key==='I'){
+      if(_currentModalExamId){closeExamModal();return}
       const q=filteredQ[currentIdx];
       if(q&&q.source)showExamModal(q.source);
       return;
