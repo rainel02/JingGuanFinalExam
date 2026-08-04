@@ -87,9 +87,9 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 
 <!-- Main Content -->
 <main class="flex-1 flex flex-col overflow-hidden">
-    <!-- Filter Bar - always visible -->
-    <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-shrink-0">
-      <select id="filter-year" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="applyFilter()"><option value="">全部年份</option></select>
+    <!-- Filter Bar -->
+    <div id="filter-bar" class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-3 flex-shrink-0">
+      <select id="filter-year" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="onYearFilterChange()"><option value="">全部年份</option><option value="__fav__">收藏夹</option><option value="__wrong__">错题库</option></select>
       <select id="filter-type" class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20" onchange="applyFilter()">
         <option value="">全部题型</option><option value="填空">填空</option><option value="单选">单选</option><option value="多选">多选</option><option value="判断">判断</option><option value="计算">计算</option>
       </select>
@@ -419,6 +419,8 @@ function showPage(name){
     if(el)el.classList.toggle('hidden',p!==name);
   });
   document.getElementById('empty-state').classList.add('hidden');
+  // Hide filter bar on data page
+  document.getElementById('filter-bar').classList.toggle('hidden',name==='data');
   document.getElementById('view-card-btn').classList.toggle('bg-white',name==='card');
   document.getElementById('view-card-btn').classList.toggle('shadow-sm',name==='card');
   document.getElementById('view-card-btn').classList.toggle('text-primary',name==='card');
@@ -510,21 +512,35 @@ function updateDashboard(){
 }
 
 // ============ Filter ============
+function onYearFilterChange(){
+  const v=document.getElementById('filter-year').value;
+  if(v==='__fav__'){currentMode='fav';applyFilter();showPage('card');return}
+  if(v==='__wrong__'){currentMode='wrong';applyFilter();showPage('card');return}
+  currentMode='exam';applyFilter();
+}
 function applyFilter(){
   const year=document.getElementById('filter-year').value;
   const type=document.getElementById('filter-type').value;
   const kw=document.getElementById('search-input').value.trim().toLowerCase();
+  // Sync dropdown with current mode
+  if(currentMode==='fav')document.getElementById('filter-year').value='__fav__';
+  else if(currentMode==='wrong')document.getElementById('filter-year').value='__wrong__';
+  else if(currentMode==='exam'&&year==='__fav__'){currentMode='fav';document.getElementById('filter-year').value='__fav__'}
+  else if(currentMode==='exam'&&year==='__wrong__'){currentMode='wrong';document.getElementById('filter-year').value='__wrong__'}
   let qs=[];
   if(currentMode==='fav')qs=allQ.filter(q=>S.favorites.includes(q.id));
   else if(currentMode==='wrong')qs=allQ.filter(q=>S.wrongBook.includes(q.id));
-  else{qs=allQ;if(year)qs=qs.filter(q=>q.source===year)}
+  else{qs=allQ;const yv=document.getElementById('filter-year').value;if(yv&&yv!=='__fav__'&&yv!=='__wrong__')qs=qs.filter(q=>q.source===yv)}
   if(type)qs=qs.filter(q=>q.type===type);
   if(kw)qs=qs.filter(q=>q.question.toLowerCase().includes(kw)||(q.answer&&q.answer.toLowerCase().includes(kw)));
   filteredQ=qs;
-  // Feature 4: Auto-jump to first unanswered question
-  if(currentMode==='exam'&&year){
-    const firstUnanswered=qs.findIndex(q=>!S.answered[q.id]);
-    currentIdx=firstUnanswered>=0?firstUnanswered:0;
+  // Auto-jump to first unanswered question
+  if(currentMode==='exam'){
+    const yv=document.getElementById('filter-year').value;
+    if(yv&&yv!=='__fav__'&&yv!=='__wrong__'){
+      const firstUnanswered=qs.findIndex(q=>!S.answered[q.id]);
+      currentIdx=firstUnanswered>=0?firstUnanswered:0;
+    }else{currentIdx=0}
   }else{
     currentIdx=0;
   }
@@ -624,7 +640,7 @@ function renderQuestion(){
     if(q.type==='单选'||q.type==='多选'||q.type==='判断'){
       renderOptionsWithResult(q,prev);
     }else if(q.type==='填空'){
-      document.getElementById('q-fill').classList.remove('hidden');
+      // Already answered - just show record, no input
     }else if(q.type==='计算'){
       // calculation questions just show record
     }
@@ -636,7 +652,7 @@ function renderQuestion(){
   }else{
     // Fresh question or review mode (fav/wrong) - show as unanswered
     if(q.type==='单选'||q.type==='多选'||q.type==='判断')renderOptions(q);
-    else if(q.type==='填空'){document.getElementById('q-fill').classList.remove('hidden');document.getElementById('q-submit').classList.remove('hidden')}
+    else if(q.type==='填空'){document.getElementById('q-fill').classList.remove('hidden');document.getElementById('q-submit').classList.remove('hidden');setTimeout(()=>document.getElementById('fill-input').focus(),50)}
     else if(q.type==='计算')document.getElementById('q-calc').classList.remove('hidden');
   }
   // Nav
@@ -872,10 +888,142 @@ function startExam(examId){
 }
 function prevQ(){if(currentIdx>0){currentIdx--;renderQuestion()}}
 function nextQ(){if(currentIdx<filteredQ.length-1){currentIdx++;renderQuestion()}}
+function scrollQToTop(){
+  const scroller=document.querySelector('main > .flex-1.overflow-y-auto');
+  if(scroller)scroller.scrollTo({top:0,behavior:'smooth'});
+}
+function scrollListToCurrent(){
+  const row=document.querySelector('#question-list-body .q-row.current');
+  if(row)row.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function updateListHighlight(){
+  document.querySelectorAll('#question-list-body .q-row').forEach((r,i)=>{
+    r.classList.toggle('current',i===currentIdx);
+  });
+}
 document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft')prevQ();
-  else if(e.key==='ArrowRight')nextQ();
-  else if(e.key==='Enter'){const q=filteredQ[currentIdx];if(!S.answered[q?.id])submitAnswer()}
+  // ---- Esc: blur input or close modal ----
+  if(e.key==='Escape'){
+    if(_currentModalExamId){closeExamModal();return}
+    const ae=document.activeElement;
+    if(ae&&(ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA')){ae.blur();return}
+    return;
+  }
+  // ---- Tab: toggle card/list ----
+  if(e.key==='Tab'){
+    const ae=document.activeElement;
+    if(ae && (ae.tagName==='INPUT'||ae.tagName==='SELECT'||ae.tagName==='TEXTAREA'))return;
+    e.preventDefault();
+    const isCard=!document.getElementById('page-card').classList.contains('hidden');
+    showPage(isCard?'list':'card');
+    return;
+  }
+  const isList=!document.getElementById('page-list').classList.contains('hidden');
+  const isCard=!document.getElementById('page-card').classList.contains('hidden');
+  const inInput=document.activeElement&&(document.activeElement.tagName==='INPUT'||document.activeElement.tagName==='SELECT'||document.activeElement.tagName==='TEXTAREA');
+  // ---- Single-key shortcuts (only outside input) ----
+  if(!inInput){
+    if(e.key==='l'||e.key==='L'){
+      currentMode='fav';applyFilter();showPage('card');
+      const sb=document.querySelectorAll('#sidebar-exams .sidebar-item');sb.forEach(i=>i.classList.remove('active'));
+      const favItem=document.querySelector('.sidebar-item[onclick*="currentMode=\'fav\'"]');if(favItem)setActiveSidebar(favItem);
+      return;
+    }
+    if(e.key==='w'||e.key==='W'){
+      currentMode='wrong';applyFilter();showPage('card');
+      const sb=document.querySelectorAll('#sidebar-exams .sidebar-item');sb.forEach(i=>i.classList.remove('active'));
+      const wrongItem=document.querySelector('.sidebar-item[onclick*="currentMode=\'wrong\'"]');if(wrongItem)setActiveSidebar(wrongItem);
+      return;
+    }
+    if(e.key==='m'||e.key==='M'){
+      showPage('data');
+      const dataItem=document.querySelector('.sidebar-item[onclick*="showPage(\'data\')"]');if(dataItem)setActiveSidebar(dataItem);
+      return;
+    }
+    if(e.key==='d'||e.key==='D'){
+      const q=filteredQ[currentIdx];
+      if(q&&q.source)showExamModal(q.source);
+      return;
+    }
+  }
+  // ---- List view: arrows navigate rows, Enter jumps to detail ----
+  if(isList){
+    if(e.key==='ArrowUp'||e.key==='ArrowLeft'){
+      if(currentIdx>0){e.preventDefault();currentIdx--;updateListHighlight();scrollListToCurrent()}
+    }else if(e.key==='ArrowDown'||e.key==='ArrowRight'){
+      if(currentIdx<filteredQ.length-1){e.preventDefault();currentIdx++;updateListHighlight();scrollListToCurrent()}
+    }else if(e.key==='Enter'){
+      e.preventDefault();jumpToQ(currentIdx);
+    }
+    return;
+  }
+  // ---- Card view: grid-based navigation ----
+  if(isCard){
+    const COLS=4; // matches grid-cols-4 in q-grid-inner
+    if(e.key==='ArrowLeft'){
+      e.preventDefault();prevQ();
+    }else if(e.key==='ArrowRight'){
+      e.preventDefault();nextQ();
+    }else if(e.key==='ArrowUp'){
+      const target=currentIdx-COLS;
+      if(target>=0){e.preventDefault();currentIdx=target;renderQuestion();renderQGrid();scrollQToTop()}
+    }else if(e.key==='ArrowDown'){
+      const target=currentIdx+COLS;
+      if(target<filteredQ.length){e.preventDefault();currentIdx=target;renderQuestion();renderQGrid();scrollQToTop()}
+    }
+  }
+  if(e.key==='Enter'){
+    const q=filteredQ[currentIdx];
+    if(!q)return;
+    // Enter in fill-input also submits
+    if(document.activeElement===document.getElementById('fill-input')){
+      if(!S.answered[q.id])submitAnswer();
+      return;
+    }
+    if(!S.answered[q.id])submitAnswer();
+  }
+  else if(e.key==='Shift'){
+    const q=filteredQ[currentIdx];
+    if(!q||S.answered[q.id])return;
+    showAnswerDirectly();
+  }
+  else if(e.key==='1'){
+    const q=filteredQ[currentIdx];
+    if(q&&S.answered[q.id])redoQuestion();
+  }
+  else if(e.key==='2'){
+    const q=filteredQ[currentIdx];
+    if(q&&S.answered[q.id])toggleFavorite();
+  }
+  else if(e.key==='3'){
+    const q=filteredQ[currentIdx];
+    if(q&&S.answered[q.id])toggleWrongBook();
+  }
+  else if(e.key==='4'){
+    if(document.activeElement===document.getElementById('fill-input'))return;
+    const q=filteredQ[currentIdx];
+    if(q&&S.answered[q.id])nextQ();
+  }
+  else if(/^[a-fA-F]$/.test(e.key)){
+    const q=filteredQ[currentIdx];
+    if(!q||S.answered[q.id])return;
+    if(q.type!=='单选'&&q.type!=='多选'&&q.type!=='判断')return;
+    if(document.activeElement===document.getElementById('fill-input'))return;
+    const key=e.key.toUpperCase();
+    const isM=q.type==='多选';
+    const btns=document.querySelectorAll('#q-options .option-btn');
+    let targetVal=key;
+    if(q.type==='判断'){targetVal=key==='A'?'对':(key==='B'?'错':null)}
+    const targetBtn=[...btns].find(b=>b.dataset.value===targetVal);
+    if(targetBtn){
+      if(!isM&&targetBtn.classList.contains('selected')){
+        targetBtn.classList.remove('selected');
+        const ind=targetBtn.querySelector('.opt-indicator');ind.classList.remove('bg-primary','border-primary');ind.textContent='';
+      }else{
+        selectOpt(targetBtn,isM);
+      }
+    }
+  }
 });
 
 // ============ Toast ============
@@ -1187,9 +1335,6 @@ function handleImportExamFile(ev){
   reader.readAsText(file);
   ev.target.value='';
 }
-
-// Keyboard: Escape closes modal
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&_currentModalExamId)closeExamModal()});
 
 init();
 </script>
