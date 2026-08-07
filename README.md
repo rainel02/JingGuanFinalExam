@@ -95,8 +95,23 @@ python -m http.server 8090
 
 ```
 经管/
-├── index.html          # 刷题系统主页面
-├── data/               # 各年份试题数据
+├── index.html              # 主页面（HTML 骨架 + 外部引用）
+├── css/
+│   └── style.css           # 自定义 CSS 样式
+├── js/
+│   ├── state.js            # 全局状态管理（loadState / saveState）
+│   ├── utils.js            # 工具函数（showToast / formatDate / downloadFile）
+│   ├── sidebar.js          # 侧边栏折叠、展开按钮、快速导航弹窗
+│   ├── qnav.js             # 题目导航（静态网格、浮动导航、响应式切换）
+│   ├── dashboard.js        # 仪表盘渲染
+│   ├── filter.js           # 筛选逻辑（年份 / 题型 / 关键字）
+│   ├── card.js             # 卡片答题视图（渲染、提交、收藏/错题、重做）
+│   ├── list.js             # 列表视图
+│   ├── exam-modal.js       # 试卷详情弹窗
+│   ├── data-mgmt.js        # 数据导入/导出（JSON / Markdown）
+│   ├── pages.js            # 页面切换与初始化
+│   └── keyboard.js         # 键盘快捷键处理
+├── data/                    # 各年份试题数据
 │   ├── data-2005b2.js
 │   ├── data-2006a1.js
 │   ├── data-2006a2.js
@@ -109,10 +124,10 @@ python -m http.server 8090
 │   ├── data-2019c.js
 │   ├── data-2021a.js
 │   └── data-2022a.js
-├── server.ps1           # PowerShell 本地服务器
-├── images/              # SVG 图表
-├── 笔记/                # 课程笔记 & 例题
-└── 复习/                # 复习资料
+├── server.ps1               # PowerShell 本地服务器
+├── images/                  # 题目图片
+├── 笔记/                    # 课程笔记 & 例题
+└── 复习/                    # 复习资料
 ```
 
 ## 技术栈

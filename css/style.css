@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body{font-family:'Inter',system-ui,-apple-system,sans-serif}
+
+/* Sidebar items */
+.sidebar-item{transition:all .2s ease}
+.sidebar-item:hover{background:rgba(79,70,229,.08)}
+.sidebar-item.active{background:rgba(79,70,229,.12);color:#4F46E5;font-weight:600}
+
+/* Option buttons */
+.option-btn{transition:all .15s ease}
+.option-btn:hover{border-color:#6366F1;background:rgba(99,102,241,.05)}
+.option-btn.selected{border-color:#4F46E5;background:rgba(79,70,229,.1);box-shadow:0 0 0 1px rgba(79,70,229,.2)}
+.option-btn.correct{border-color:#10B981;background:rgba(16,185,129,.1)}
+.option-btn.wrong{border-color:#EF4444;background:rgba(239,68,68,.1)}
+
+/* Primary button */
+.btn-primary{transition:all .2s ease}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.3)}
+
+/* Fade-in animation */
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:9999px;font-size:.7rem;font-weight:500}
+
+/* Thin scrollbar */
+.scrollbar-thin::-webkit-scrollbar{width:4px}
+.scrollbar-thin::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px}
+
+/* List view rows */
+.q-row{transition:all .15s ease}
+.q-row:hover{background:rgba(79,70,229,.04)}
+.q-row.current{background:rgba(79,70,229,.08);border-left:3px solid #4F46E5}
+
+/* Stat cards */
+.stat-card{transition:all .2s ease}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+
+/* Question grid cells */
+.q-cell{transition:all .15s ease;cursor:pointer}
+.q-cell:hover{transform:scale(1.1);z-index:10}
+.q-cell.current{outline:2px solid #4F46E5;outline-offset:0px}
+
+/* Modal scrollbar hide */
+.scrollbar-hide-modal::-webkit-scrollbar{display:none}
+.scrollbar-hide-modal{-ms-overflow-style:none;scrollbar-width:none}
+
+/* Collapsible sidebar */
+#left-sidebar.collapsed{width:0;padding:0;border:none}
+#left-sidebar.collapsed .sidebar-label{opacity:0;width:0;overflow:hidden;white-space:nowrap}
+#left-sidebar.collapsed #sidebar-footer{display:none}
+#left-sidebar.collapsed #sidebar-toggle{display:none}
+#left-sidebar.collapsed #sidebar-nav{display:none}
+#left-sidebar.collapsed .p-5{display:none}
+
+/* Floating question navigation */
+#q-nav-float{position:fixed;z-index:30}
+#q-nav-float.minimized{bottom:20px;right:20px;width:44px;height:44px;border-radius:50%;box-shadow:0 4px 14px rgba(79,70,229,.4);transition:transform .2s ease,box-shadow .2s ease}
+#q-nav-float.minimized:hover{transform:scale(1.15);box-shadow:0 6px 20px rgba(79,70,229,.5)}
+#q-nav-float.expanded{bottom:16px;right:16px;width:220px;max-height:calc(100vh - 60px);border-radius:16px}
+@keyframes floatExpand{0%{opacity:0;transform:translateY(12px) scale(.92)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes floatCollapse{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.6)}}
+#q-nav-float.anim-expand{animation:floatExpand .22s ease-out forwards}
+#q-nav-float.anim-collapse{animation:floatCollapse .15s ease-in forwards}
+
+/* Quick nav popup (sidebar collapsed) */
+#quick-nav-popup{position:fixed;top:0;left:0;z-index:40;width:220px;max-height:calc(100vh - 20px);overflow-y:auto;border-radius:0 0 12px 12px;box-shadow:4px 4px 16px rgba(0,0,0,.12)}
+@keyframes quickNavIn{0%{opacity:0;transform:translateX(-10px)}100%{opacity:1;transform:translateX(0)}}
+#quick-nav-popup.show{animation:quickNavIn .15s ease-out forwards}
