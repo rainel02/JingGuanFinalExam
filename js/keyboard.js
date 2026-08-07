@@ -45,6 +45,48 @@ document.addEventListener('keydown',e=>{
       return;
     }
   }
+  // ---- Shift+Up/Down: switch exam paper ----
+  if(e.shiftKey&&(e.key==='ArrowUp'||e.key==='ArrowDown')){
+    if(currentMode==='fav'||currentMode==='wrong'){
+      // In fav/wrong mode, Shift+Down goes to first exam; Shift+Up does nothing
+      if(e.key==='ArrowDown'&&examData.length>0){
+        e.preventDefault();startExam(examData[0].id);
+        showToast('切换到: '+examData[0].name);
+      }
+      return;
+    }
+    const curYear=document.getElementById('filter-year').value;
+    let curIdx=-1; // -1 means "all exams"
+    if(curYear)curIdx=examData.findIndex(ex=>ex.id===curYear);
+    if(e.key==='ArrowUp'){
+      if(curIdx===-1){
+        // Already at "all", wrap to last exam
+        if(examData.length>0){e.preventDefault();startExam(examData[examData.length-1].id);showToast('切换到: '+examData[examData.length-1].name)}
+      }else if(curIdx>0){
+        e.preventDefault();startExam(examData[curIdx-1].id);showToast('切换到: '+examData[curIdx-1].name);
+      }else{
+        // At first exam, go to "all exams"
+        e.preventDefault();currentMode='exam';document.getElementById('filter-year').value='';
+        const allItem=document.querySelector('.sidebar-item[data-exam-id="all"]');
+        if(allItem)setActiveSidebar(allItem);
+        applyFilter();showPage('card');showToast('切换到: 全部试题');
+      }
+    }else{ // ArrowDown
+      if(curIdx===-1){
+        // "All exams" → first exam
+        if(examData.length>0){e.preventDefault();startExam(examData[0].id);showToast('切换到: '+examData[0].name)}
+      }else if(curIdx<examData.length-1){
+        e.preventDefault();startExam(examData[curIdx+1].id);showToast('切换到: '+examData[curIdx+1].name);
+      }else{
+        // At last exam, wrap to "all exams"
+        e.preventDefault();currentMode='exam';document.getElementById('filter-year').value='';
+        const allItem=document.querySelector('.sidebar-item[data-exam-id="all"]');
+        if(allItem)setActiveSidebar(allItem);
+        applyFilter();showPage('card');showToast('切换到: 全部试题');
+      }
+    }
+    return;
+  }
   // ---- List view: arrows navigate rows, Enter jumps to detail ----
   if(isList){
     if(e.key==='ArrowUp'||e.key==='ArrowLeft'){
