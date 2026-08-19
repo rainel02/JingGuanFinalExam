@@ -38,7 +38,13 @@ function showQuickNav(triggerBtn){
     popup.classList.remove('hidden');
     popup.classList.add('show');
     const btn=triggerBtn||document.getElementById('sidebar-expand-btn');
-    if(btn){const r=btn.getBoundingClientRect();popup.style.top=r.bottom+4+'px';popup.style.left=r.left+'px'}
+    if(btn){
+      const r=btn.getBoundingClientRect();
+      const topPos=r.bottom+4;
+      popup.style.top=topPos+'px';
+      popup.style.left=r.left+'px';
+      popup.style.maxHeight='calc(100vh - '+topPos+'px - 10px)';
+    }
   },QUICK_NAV_DELAY);
 }
 
