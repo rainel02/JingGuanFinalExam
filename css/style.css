@@ -73,8 +73,8 @@ body{font-family:'Inter',system-ui,-apple-system,sans-serif}
 #quick-nav-popup{position:fixed;top:0;left:0;z-index:40;width:220px;max-height:calc(100vh - 70px);overflow-y:auto;border-radius:0 0 12px 12px;box-shadow:4px 4px 16px rgba(0,0,0,.12)}
 #quick-nav-popup::-webkit-scrollbar{width:4px}
 #quick-nav-popup::-webkit-scrollbar-track{background:transparent}
-#quick-nav-popup::-webkit-scrollbar-thumb{background:#C7D2FE;border-radius:2px}
-#quick-nav-popup::-webkit-scrollbar-thumb:hover{background:#A5B4FC}
-#quick-nav-popup{-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#C7D2FE transparent}
+#quick-nav-popup::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px}
+#quick-nav-popup::-webkit-scrollbar-thumb:hover{background:#94A3B8}
+#quick-nav-popup{-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#CBD5E1 transparent}
 @keyframes quickNavIn{0%{opacity:0;transform:translateX(-10px)}100%{opacity:1;transform:translateX(0)}}
 #quick-nav-popup.show{animation:quickNavIn .15s ease-out forwards}
