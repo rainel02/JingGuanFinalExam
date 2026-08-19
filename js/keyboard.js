@@ -38,6 +38,11 @@ document.addEventListener('keydown',e=>{
       const dataItem=document.querySelector('.sidebar-item[onclick*="showPage(\'data\')"]');if(dataItem)setActiveSidebar(dataItem);
       return;
     }
+    if(e.key==='h'||e.key==='H'){
+      showPage('dashboard');
+      const dashItem=document.querySelector('#sidebar-nav .sidebar-item');if(dashItem)setActiveSidebar(dashItem);
+      return;
+    }
     if(e.key==='i'||e.key==='I'){
       if(_currentModalExamId){closeExamModal();return}
       const q=filteredQ[currentIdx];
