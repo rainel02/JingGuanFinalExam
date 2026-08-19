@@ -90,21 +90,21 @@ tailwind.config = { theme: { extend: { colors: {
     <!-- Content Area -->
     <div class="flex-1 overflow-y-auto">
       <!-- ===== Dashboard Page ===== -->
-      <div id="page-dashboard" class="max-w-4xl mx-auto p-6 fade-in">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">📊 学习仪表盘</h2>
-        <div class="grid grid-cols-4 gap-4 mb-6" id="stat-cards"></div>
-        <div class="grid grid-cols-2 gap-4 mb-6">
-          <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-            <h3 class="text-sm font-semibold text-gray-600 mb-3">各试卷进度</h3>
-            <div id="exam-progress" class="space-y-2"></div>
+      <div id="page-dashboard" class="h-full flex flex-col px-6 py-4 fade-in max-w-4xl mx-auto w-full">
+        <h2 class="text-lg font-bold text-gray-800 mb-3 flex-shrink-0">📊 学习仪表盘</h2>
+        <div class="grid grid-cols-4 gap-4 mb-4 flex-shrink-0" id="stat-cards"></div>
+        <div class="grid grid-cols-2 gap-4 mb-4 flex-1 min-h-0">
+          <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col min-h-0">
+            <h3 class="text-sm font-semibold text-gray-600 mb-2 flex-shrink-0">各试卷进度</h3>
+            <div id="exam-progress" class="space-y-1 overflow-y-auto scrollbar-thin flex-1 min-h-0"></div>
           </div>
-          <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-            <h3 class="text-sm font-semibold text-gray-600 mb-3">各题型进度</h3>
-            <div id="type-progress" class="space-y-2"></div>
+          <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex flex-col min-h-0">
+            <h3 class="text-sm font-semibold text-gray-600 mb-2 flex-shrink-0">各题型进度</h3>
+            <div id="type-progress" class="space-y-1 overflow-y-auto scrollbar-thin flex-1 min-h-0"></div>
           </div>
         </div>
-        <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-          <h3 class="text-sm font-semibold text-gray-600 mb-3">快速开始</h3>
+        <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex-shrink-0">
+          <h3 class="text-sm font-semibold text-gray-600 mb-2">快速开始</h3>
           <div class="flex gap-3" id="quick-actions"></div>
         </div>
       </div>
